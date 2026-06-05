@@ -706,7 +706,7 @@ for l in range(1, Z3_OPTIMAL_LAYERS + 1):
     R{l}_1 --> M{l}_1
     R{l}_2 --> M{l}_2
 """
-new_block += """```
+new_block += f"""```
 
 #### Final Form: The Sparse Single-Layer Recurrent-MLP (Liquid State Machine)
 

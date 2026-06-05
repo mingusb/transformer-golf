@@ -132,7 +132,10 @@ try:
         shake_block3_full = logs[shake_start3:shake_start4].strip()
         shake_block4 = logs[shake_start4:shake_start5].strip()
         shake_block5 = logs[shake_start5:shake_start6].strip()
-        shake_block6 = logs[shake_start6:].strip()
+        
+        shake_end6 = logs.find("Initializing Z3 SMT Solver", shake_start6)
+        if shake_end6 == -1: shake_end6 = len(logs)
+        shake_block6 = logs[shake_start6:shake_end6].strip()
         
         # Split the text logs from the mermaid graph
         if "--- Physical Neural Topology (Mermaid) ---" in shake_block3_full:
