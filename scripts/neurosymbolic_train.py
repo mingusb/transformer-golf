@@ -41,9 +41,11 @@ class SymPyStructuredNet(nn.Module):
         
         y_accum = 0
         
-        for j in range(ctx.size(1) - 1):
+        from scripts.task_spec import sequence_target_offset
+        offset = sequence_target_offset()
+        for j in range(ctx.size(1) - offset):
             c_j = ctx_emb[:, j, :]
-            c_next = ctx_emb[:, j+1, :]
+            c_next = ctx_emb[:, j+offset, :]
             
             pair = torch.cat([c_j, query_emb], dim=-1)
             match_score = self.match_mlp(pair)

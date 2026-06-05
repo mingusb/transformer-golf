@@ -197,38 +197,38 @@ Results:
 <!-- PERFORMANCE LOGS START -->
 ```text
 --- Training 3-Layer MLP ---
-MLP - Epoch  40 | Train Loss: 0.6868 | Train Acc: 80.1% | Test Acc: 74.6%
+MLP - Epoch  40 | Train Loss: 0.6515 | Train Acc: 79.3% | Test Acc: 73.5%
 
 --- Training MicroGPT (2-Layer Attention-Only, No LN, No Bias) ---
-GPT-PureAttn - Epoch  20 | Train Loss: 0.8527 | Train Acc: 78.1% | Test Acc: 74.3%
+GPT-PureAttn - Epoch  20 | Train Loss: 0.0650 | Train Acc: 98.0% | Test Acc: 97.0%
 
 --- Training SymPy-Structured MLP Network ---
 SymPy-Structured MLP | Test Acc: 98.9%
 
 --- Testing Shannon N-Gram Markov Baseline ---
-Shannon Markov | Test Acc: 6.9%
+Shannon Markov | Test Acc: 7.0%
 
 --- Testing Boolean Logic Circuit Equivalency ---
-Boolean Circuit | Test Acc: 97.5%
+Boolean Circuit | Test Acc: 97.4%
 
 --- Testing SymPy Functional Abstraction Circuit ---
-SymPy Circuit | Test Acc: 73.3%
+SymPy Circuit | Test Acc: 74.1%
 
 
 --- Testing LLVM-Optimized Integer Hardware Circuit ---
-LLVM Circuit | Test Acc: 97.5%
+LLVM Circuit | Test Acc: 97.4%
 
 --- Testing Clojure Integer Hardware Circuit ---
-Clojure Circuit | Test Acc: 80.7%
+Clojure Circuit | Test Acc: 97.4%
 
 --- Testing Mathematica Hardware Circuit ---
 Mathematica Circuit | Test Acc: ERROR
 
 --- Testing APL Array Language Circuit ---
-APL Circuit | Test Acc: 66.4%
+APL Circuit | Test Acc: 66.9%
 
 --- Testing Verilog RTL Hardware Circuit ---
-Verilog Circuit | Test Acc: 80.7%
+Verilog Circuit | Test Acc: 97.4%
 ```
 <!-- PERFORMANCE LOGS END -->
 
@@ -253,7 +253,6 @@ gate_7 = NOT A AND B(E, gate_5)
 gate_8 = A AND NOT B(gate_6, gate_7)
 
 This mathematical proof confirms the absolute minimum hardware gate-count!
---- T
 ```
 <!-- Z3 SUPEROPTIMIZATION END -->
 
@@ -308,10 +307,10 @@ def predict_next_token(context, query):
 
     # Output token y is context[j+1] if M[j] == 1
     y_bits = [0] * 4
-    y_bits[0] = (M[0] & ctx_bits[1][0])
-    y_bits[1] = (M[0] & ctx_bits[1][1])
-    y_bits[2] = (M[0] & ctx_bits[1][2])
-    y_bits[3] = (M[0] & ctx_bits[1][3])
+    y_bits[0] = (M[0] & ctx_bits[1][0]) | (M[1] & ctx_bits[2][0]) | (M[2] & ctx_bits[3][0]) | (M[3] & ctx_bits[4][0]) | (M[4] & ctx_bits[5][0])
+    y_bits[1] = (M[0] & ctx_bits[1][1]) | (M[1] & ctx_bits[2][1]) | (M[2] & ctx_bits[3][1]) | (M[3] & ctx_bits[4][1]) | (M[4] & ctx_bits[5][1])
+    y_bits[2] = (M[0] & ctx_bits[1][2]) | (M[1] & ctx_bits[2][2]) | (M[2] & ctx_bits[3][2]) | (M[3] & ctx_bits[4][2]) | (M[4] & ctx_bits[5][2])
+    y_bits[3] = (M[0] & ctx_bits[1][3]) | (M[1] & ctx_bits[2][3]) | (M[2] & ctx_bits[3][3]) | (M[3] & ctx_bits[4][3]) | (M[4] & ctx_bits[5][3])
 
     # Reconstruct output integer from bits
     y = y_bits[0] | (y_bits[1] << 1) | (y_bits[2] << 2) | (y_bits[3] << 3)
@@ -341,7 +340,7 @@ def induction_match(Context_Token, Query_Token, Z):
 
 def predict_next_token_sympy(context, query):
     y = 0
-    for j in [0]:
+    for j in range(5):
         Z = (context[j+1] >> 0) & 1
         y |= induction_match(context[j], query, Z)
     return y
@@ -680,36 +679,40 @@ graph TD
     N13(("N_13")):::neuron
     N14(("N_14")):::neuron
     N15(("N_15")):::neuron
-    N2 -->|"0.61"| N0
-    N12 -->|"0.25"| N2
-    N10 -->|"0.07"| N4
-    N7 -->|"-0.01"| N5
-    N12 -->|"0.53"| N5
-    N7 -->|"0.24"| N6
-    N8 -->|"-0.17"| N6
-    N1 -->|"0.40"| N7
-    N3 -->|"0.20"| N7
-    N6 -->|"0.62"| N7
-    N12 -->|"-0.02"| N7
-    N13 -->|"-0.01"| N7
-    N0 -->|"-0.14"| N8
-    N2 -->|"-0.52"| N8
-    N5 -->|"0.39"| N8
-    N6 -->|"-0.12"| N8
-    N0 -->|"0.12"| N9
-    N6 -->|"0.43"| N10
-    N7 -->|"0.24"| N10
-    N9 -->|"-0.42"| N10
-    N9 -->|"0.04"| N11
-    N2 -->|"0.06"| N12
-    N5 -->|"0.53"| N12
-    N11 -->|"0.52"| N12
-    N4 -->|"0.86"| N13
-    N6 -->|"-0.17"| N14
-    N8 -->|"0.41"| N14
-    N13 -->|"0.40"| N14
-    N15 -->|"0.68"| N14
-    N13 -->|"0.45"| N15
+    N0 -->|"0.65"| N0
+    N5 -->|"-0.27"| N0
+    N6 -->|"0.34"| N0
+    N10 -->|"-0.38"| N0
+    N6 -->|"0.58"| N1
+    N13 -->|"0.26"| N1
+    N9 -->|"0.26"| N2
+    N12 -->|"0.56"| N3
+    N14 -->|"-0.07"| N3
+    N15 -->|"-0.02"| N3
+    N6 -->|"0.42"| N6
+    N13 -->|"0.32"| N6
+    N6 -->|"0.66"| N7
+    N13 -->|"-0.25"| N7
+    N4 -->|"-0.13"| N8
+    N12 -->|"0.21"| N8
+    N14 -->|"0.51"| N8
+    N1 -->|"0.25"| N9
+    N8 -->|"-0.27"| N9
+    N2 -->|"-0.15"| N10
+    N4 -->|"0.53"| N10
+    N6 -->|"0.39"| N10
+    N12 -->|"-0.34"| N10
+    N15 -->|"0.68"| N10
+    N5 -->|"0.61"| N12
+    N9 -->|"-0.14"| N12
+    N3 -->|"0.53"| N13
+    N5 -->|"0.21"| N13
+    N12 -->|"-0.28"| N13
+    N5 -->|"0.45"| N14
+    N6 -->|"-0.64"| N14
+    N8 -->|"0.62"| N14
+    N14 -->|"0.59"| N14
+    N2 -->|"0.18"| N15
 ```
 <!-- LITERAL TRAINED BRAIN END -->
 
@@ -756,104 +759,105 @@ Training these architectures on the `regex_corpus` dataset successfully converge
 <!-- REGEX LOGS START -->
 ```text
 --- Training Pure Connectionist MLP-Transformer on Regular Expressions ---
-Iter    0 | Train Loss: 4.9368
-Iter  500 | Train Loss: 1.7052
-Iter 1000 | Train Loss: 1.4636
-Iter 1500 | Train Loss: 1.3252
-Iter 2000 | Train Loss: 1.2620
-Iter 2500 | Train Loss: 1.1734
+Iter    0 | Train Loss: 4.7803
+Iter  500 | Train Loss: 1.9924
+Iter 1000 | Train Loss: 1.7701
+Iter 1500 | Train Loss: 1.6097
+Iter 2000 | Train Loss: 1.5508
+Iter 2500 | Train Loss: 1.4679
 
 --- Generating Regular Expressions (MLP-Transformer) ---
 
-^(\d+8)-(\d+)(\d+)\.+(\d+)\.(\d+)(\.\d+)?$)(\.(\w+)(\(\w+)=$)
-(.*?[#](\w{1,3})?
-(?:[\[\\]]?\d{4}[\-]?\d?\d{3}(?:-\d{4}\s?)*\(?[\|\()]?[\|\(]?\*\)?$[\*]))|$
-^(\+\d+(,\)*|(\d+) \b)$
-^ (\S+) .*? \ \S+) \"(\d+) (\d+) \}(\d+) (\d\d.*) (\d+) (\d*) (\d{4})-
+((([0-9]{3,3})([A-Za-z0-9]{3,})?([A-Z0-9]+.[0-9]+)$
+(^[A-Z]{1,15})
+((?: )*,([A-Z]){70,4}) (-)(\d{1,3})[\]]+(\)(.*)?=\.+)(?)(?:\d))((\d{2}\/\-|\d{3})?(\.)\{2}?:{0,3}\.{1,4}\"\s*?\s*\"(\s*?:".*?)
+\/?(?("|))"|,|(?=\s*\/.*?)(|$)\.(?(\.|$?)\d))
+(?=\d{6,}$
 ```
 
 ```text
 --- Training Pure Connectionist Recurrent-MLP LM on Regular Expressions ---
-Iter    0 | Train Loss: 4.8778
-Iter  500 | Train Loss: 1.4912
-Iter 1000 | Train Loss: 1.2910
-Iter 1500 | Train Loss: 1.2077
-Iter 2000 | Train Loss: 1.0586
-Iter 2500 | Train Loss: 0.8734
+Iter    0 | Train Loss: 4.7438
+Iter  500 | Train Loss: 1.6162
+Iter 1000 | Train Loss: 1.4672
+Iter 1500 | Train Loss: 1.4257
+Iter 2000 | Train Loss: 1.3936
+Iter 2500 | Train Loss: 1.3442
 
 --- Generating Regular Expressions (Recurrent-MLP) ---
 
-(^9+\.\w*)
-(\w\w)
-(\&)(<)[\s*\w+([^@]|^|[^<>]*)<\/\1>
-<([^\/> ]+)\.)?(\/\/[A-Z][a-z]+)(\.[a-zA-Z]{1,}\s)*([A-Z].*)\$?([0-9]+[^:]*>)
-"[0-9]+)
-([0-9A-F]{8}-[0-9a-f]{12}$
-^[A-Z]{2,3}$)
-(^([A-Z])
-([^a-z])+\@([-+]?[0-9]{3,4})$
-^(([0-9]{4}[\/]+[0-9]*)(([A-
+(?=^|\s+)(?:[^']+))?[\s\S\D+(\(\(\)\s*-,^()]|(<)\\|0)\d){4}$
+^[0-9]{2}\/[0-9]{1,3}\d{1,3}\d{14})
+\$([a-z]{11}|5[0-579]|[1-9]|5[0-9]\d|2[0-2])(?:[0-9]{1})$
+^([0-9]|[0-9]{2})|([1-9])0{2}([\w.-]?0[0-9]|[1-9])))
+([0]{4})
+(?=([0-9])+))$
+^(([a-zA-F0-3]|)(?
 ```
 
 ```text
 --- Training Pure Connectionist Sparse Recurrent-MLP on Regular Expressions ---
-Iter    0 | Train Loss: 4.5547
-Iter  500 | Train Loss: 2.1371
-Iter 1000 | Train Loss: 1.9768
-Iter 1500 | Train Loss: 1.9617
-Iter 2000 | Train Loss: 2.0611
-Iter 2500 | Train Loss: 1.9522
+Iter    0 | Train Loss: 4.5184
+Iter  500 | Train Loss: 2.2155
+Iter 1000 | Train Loss: 2.0120
+Iter 1500 | Train Loss: 1.9489
+Iter 2000 | Train Loss: 1.8840
+Iter 2500 | Train Loss: 1.9473
 
 --- Generating Regular Expressions (Sparse Recurrent-MLP) ---
 
-^\w+)[0-9_]*[A-Z0-9A-Z\d*)*(?=.*.(\W{1,})$
-^[^>]{4})\.*[[a-z0-9]+)(?=.*?)(?(-\.\)\\s+{2}$
-^\.__+[a-z]*)(?:(\=\-|\-.]\s])\?
-^.*[a-zA-Za-z]\s[0[1])(?= \s]*)([\-]+\*)
-^([a]+
-.*,$
-^([[\w\d\s+>|\s\(?[0-9][0-9_-][a-z]*\/(0+))*)+?)\w+\s\w*-?]*)
-(\w+)\]:\7\d
+<=.+"\d]{2}
+(\[0-9]?)$
+([^]{1}$
+^([@:\sa-z]]([^.*\d]{0,2}(.{5}([^a-zA-Za-z70-9]{3})[a-z]{3})
+([a-f]{2})(?\.\d+?([^<-]{9}
+^"(\"(\(\d]*
+(^{4}),
+\).*(.+)(| {1,3}[0-9]+[0-9]
+[\w[a-z]+)(?:)?(\d -){1})[\w\w+)\d\d)|([\w)))?|)((\d+
+\.\d*? )+){1})
+([a-\]+[0-9
 ```
 
 ```text
 --- Training Pure Connectionist Vanilla TDL on Regular Expressions ---
-Iter    0 | Train Loss: 4.4966
-Iter  500 | Train Loss: 1.5292
-Iter 1000 | Train Loss: 1.5671
-Iter 1500 | Train Loss: 1.4792
-Iter 2000 | Train Loss: 1.4054
-Iter 2500 | Train Loss: 1.3627
+Iter    0 | Train Loss: 4.5790
+Iter  500 | Train Loss: 1.5997
+Iter 1000 | Train Loss: 1.5099
+Iter 1500 | Train Loss: 1.4463
+Iter 2000 | Train Loss: 1.4180
+Iter 2500 | Train Loss: 1.3936
 
 --- Generating Regular Expressions (Vanilla TDL) ---
 
-^[+-]?\d{2})\b
-\b[0-1])[a-zA-Z0-9]|2[0-9]))?
-^(?=[1-9])\/(\w+\s++\}$
-^(?:\\\.*\d)[a-zA-Z])([\w\/->\.\d+)\.([a-zA-Z])(\d*)$
-..+?)\+?\s?\(?([$](?:.*[a-zA-Z]{2})?$
-.+[!@#$@#$%^&+=!*(?=.*\\)))$
-^(\d{2}[0-9])0-9]\.[[:alnum:]]{4})-[a-z0-9])(?!)|(\s\S]*?\s)
+((?:-?(\.[0-9.-]+(?:\s+?)\)\)\-\(\s+
+(.*?\d*) ([\d]) ?
+\w*]+$
+^(?:[a-zA-Z]*\s*(?=.*[A-Z][a-f\d][0-9]*) ([a-zA-Z][0-9]{2,})\/(\d+
+\D{2,})
+^(?:\d+$|^\s]+)
+(1[0-9]{2,10}|\+|-|\*|\())+$
+^([a-z])[ \t]+
+([a-zA-Z0-9-]*)\)\d{2,6}(\.[0-9]+)+)*
+([\w-]+)\.(\d*
 ```
 
 ```text
 --- Training Pure Connectionist Vanilla TDL (1990s SGD) on Regular Expressions ---
-Iter    0 | Train Loss: 4.5374
-Iter  500 | Train Loss: 1.8499
-Iter 1000 | Train Loss: 1.7228
-Iter 1500 | Train Loss: 1.6755
-Iter 2000 | Train Loss: 1.5758
-Iter 2500 | Train Loss: 1.6021
+Iter    0 | Train Loss: 4.5036
+Iter  500 | Train Loss: 1.8719
+Iter 1000 | Train Loss: 1.7610
+Iter 1500 | Train Loss: 1.7074
+Iter 2000 | Train Loss: 1.6890
+Iter 2500 | Train Loss: 1.6461
 
 --- Generating Regular Expressions (Vanilla TDL - 1990s SGD) ---
 
-([0-9]+:\d{2,4}[\.\w+\w+|\w)
-(^[0-9][\w\d]{2}\*?@#\-.\d{1,3}|[a-zA-Za-z])(?=.*[-][#]{2}\[\d_-]*)$|[0-9])?[^a-zA-Z]|(?=.*[A-Z]
-[0-9]){2}:[0-9_i]{2}/[0-9]|[ ']?[0-9]{3})\s*(\w+)?$
-^#(?:[a-z0-9]+)( ?(\w+
-^(?!\d+) 
-(?=(?:[\d\d\A-Z])[(\s?\*
-\/(\w+[-]*\])&
+(0[53][0-9]\1\d)|(,[0}-\d\s\_]+)(\S*)\{\t\ \-)?(\t+)*|\]|\.\d*?>"(?:(?:[\d]{2}[\w]+\.\d{4})$
+^([1-9])*#([A-Z][0-9][a-z0-9]|1[0-1]*)\.([^\b)(?=[\u20,2}+\.?[a-z])(\d\*\.?[^\`)[-]\d\d)|([A-Z]{3,4})
+(\s))(?={1,4}$
+^([a-z])(?!\w\d]+)
+\[('=\w*-.]{3}) ?\d(|
 ```
 
 ```text
@@ -862,224 +866,24 @@ Iter 2500 | Train Loss: 1.6021
 Model built with 27457 unique states.
 
 --- Generating Text (Claude Shannon's N-Gram Approximation) ---
-=\@\[\]\-\(\)\- 0-9]{4}?[0-9]*)([.!?]?['"]?(?=\/)
-\d+-\d+.\d+)\s*=\s*([a-zA-Z_\x7f-\xff]*
-[a-zA-Z]+)?)|(\.\d)?\d*$
-^-?(0|[1-9]*$
-^[A-Z]+\b|^[a-z ]*)
- (\t)
- *"(\w+)\"?\s+\"?([+-]?[0-9]{8}
-[A-Z] ?[0-9]?[0-9]{8}-[a-fA-F]{12}
-[0-9.]*):)?([A-Za-z0-9_]*
-[a-z0-9]+)(\d+)\s+\1\b)+
-(\d{3}\1\d{4})[\-]([\d]+)
-([0-9]{4}-[0-9a-fA-F]{6})+(-)+([A-Z]+)*\.)+[a-zA-Z0-9]{1})\.?([0-9$|\[\]\^"]\S|(\'\S*\'))
-([+-]?((0\.\d+)?)(\+|-)(?!\d))
-(?:(?!\1))+$
-^(\w+)$
-(.*)(,?)$
-(\d*\.\d*\s*[A-Fa-f0-9]{8})-([0-9]{0,2})?$
-^\/([\
-Initializing Z3 SMT Solver for Boolean Superoptimization...
-Target Function (Raw PyTorch Logic):
-And(Or(And(C1_0, Q_0), And(Not(C1_0), Not(Q_0))),
-    And(Or(And(C1_1, Q_1), And(Not(C1_1), Not(Q_1))), E))
-
-Starting search for the absolute minimum gate-count circuit...
-Testing circuit size N = 1 gates...
-Testing circuit size N = 2 gates...
-Testing circuit size N = 3 gates...
-Testing circuit size N = 4 gates...
-
-SUCCESS! Found equivalent circuit with exactly 4 gates!
-gate_5 = XOR(Q_0, C1_0)
-gate_6 = XOR(C1_1, Q_1)
-gate_7 = NOT A AND B(E, gate_5)
-gate_8 = A AND NOT B(gate_6, gate_7)
-
-This mathematical proof confirms the absolute minimum hardware gate-count!
---- Training Pure Connectionist MLP-Transformer on Regular Expressions ---
-Iter    0 | Train Loss: 4.7961
-Iter  500 | Train Loss: 1.6593
-Iter 1000 | Train Loss: 1.5637
-Iter 1500 | Train Loss: 1.4530
-Iter 2000 | Train Loss: 1.2790
-Iter 2500 | Train Loss: 1.0808
-
---- Generating Regular Expressions (MLP-Transformer) ---
-
-^.{3,10}+$
-^([\w\d]+)\/([\da-zA-Z]+)+(,)+)\s?-*([+-]?:(?:\s|$|^|[^|^|]*\|\|){){1,25164}((?:\d.*)*[^\s]*)(\d)(?:\s|$|\s)
-(\s|\\.\d+)+(.*?)
-(\d[.,?!\!~!?!\d,\d]{330,64})
-(\.)(.*)\.{2}(.*)
-(\w)(.+)\,\30\d{15})
-(\d{4}.?)
-(\d)[0-3])+
-(([\d]+)(\/?:\d+)(.+)
-
-
---- Training Pure Connectionist Recurrent-MLP LM on Regular Expressions ---
-Iter    0 | Train Loss: 4.7683
-Iter  500 | Train Loss: 1.4928
-Iter 1000 | Train Loss: 1.3083
-Iter 1500 | Train Loss: 1.0924
-Iter 2000 | Train Loss: 1.0593
-Iter 2500 | Train Loss: 0.9734
-
---- Generating Regular Expressions (Recurrent-MLP) ---
-
-((\d{4})
-(\d\d?(?<=\-?(?!\*\d+\{))+
-(?<=[^ ])\/\/(?=^.{44})-([0-9]{4}){1,2}
-[\-\/]+[^>]*>
-<\/([0-9]{2})?(?=[.])[0-9a-fA-F]+$
-^[\u4e00-\u9FA5\d] ?
-.*[a-z]{2,4}$
-^([a-fA-F0-9A-Fa-f]{2,4} )
-([A-Z]{1,2}\.?){6,10}
-(?=\S*?[a-z])+$
-^(?=.*\d)(?=.*[A-Z])[0-9A
-
-
---- Training Pure Connectionist Sparse Recurrent-MLP on Regular Expressions ---
-Iter    0 | Train Loss: 4.4900
-Iter  500 | Train Loss: 2.2138
-Iter 1000 | Train Loss: 2.0759
-Iter 1500 | Train Loss: 1.9015
-Iter 2000 | Train Loss: 1.9153
-Iter 2500 | Train Loss: 1.9050
-
---- Generating Regular Expressions (Sparse Recurrent-MLP) ---
-
-<(\S+(?=.(^(?=?)?([0-9])([[0-9]
-\-?\d{8}|\d+)([a-zA-Z]{2}))([\]+[a-zA-Z0-[A-Z]]*\s)
-(.+)(0[A-Z]+
-[a-zA-Z]{11}\+\-\*\d+(?:\?) +\s+).*\d+)|((.+\([0-9]*[[0-_]|a-\w{8,})\.\\/\'?!@(/b
-(\_)*$
-^(?)
-([\u0-2-_]+)\"|]+(?=.|3[^,]?[1-9]{2})([\'(\S{2,5})?)([\(^(]
-
---- Physical Neural Topology (Mermaid) ---
-```mermaid
-graph TD
-    classDef neuron fill:#f9f2e7,stroke:#d4a373,stroke-width:2px,color:#000;
-    N0(("N_0")):::neuron
-    N1(("N_1")):::neuron
-    N2(("N_2")):::neuron
-    N3(("N_3")):::neuron
-    N4(("N_4")):::neuron
-    N5(("N_5")):::neuron
-    N6(("N_6")):::neuron
-    N7(("N_7")):::neuron
-    N8(("N_8")):::neuron
-    N9(("N_9")):::neuron
-    N10(("N_10")):::neuron
-    N11(("N_11")):::neuron
-    N12(("N_12")):::neuron
-    N13(("N_13")):::neuron
-    N14(("N_14")):::neuron
-    N15(("N_15")):::neuron
-    N6 -->|"0.15"| N0
-    N8 -->|"-0.10"| N0
-    N10 -->|"0.50"| N0
-    N14 -->|"0.01"| N0
-    N8 -->|"-0.02"| N1
-    N13 -->|"0.41"| N1
-    N0 -->|"0.62"| N2
-    N2 -->|"0.42"| N2
-    N6 -->|"-0.35"| N2
-    N12 -->|"0.30"| N2
-    N1 -->|"0.58"| N3
-    N4 -->|"0.25"| N3
-    N5 -->|"0.16"| N4
-    N7 -->|"-0.35"| N4
-    N8 -->|"-0.14"| N4
-    N11 -->|"0.07"| N4
-    N6 -->|"0.03"| N5
-    N7 -->|"0.08"| N5
-    N13 -->|"0.04"| N5
-    N14 -->|"-0.01"| N5
-    N0 -->|"0.08"| N6
-    N0 -->|"0.07"| N7
-    N2 -->|"0.33"| N7
-    N11 -->|"-0.14"| N8
-    N13 -->|"0.68"| N8
-    N3 -->|"0.54"| N9
-    N7 -->|"-0.11"| N9
-    N2 -->|"0.33"| N10
-    N0 -->|"-0.16"| N11
-    N2 -->|"0.23"| N11
-    N5 -->|"0.22"| N11
-    N11 -->|"0.89"| N11
-    N12 -->|"-0.65"| N11
-    N2 -->|"0.39"| N12
-    N4 -->|"0.33"| N12
-    N7 -->|"-0.34"| N12
-    N4 -->|"0.35"| N13
-    N3 -->|"0.40"| N14
-```
-
---- Training Pure Connectionist Vanilla TDL on Regular Expressions ---
-Iter    0 | Train Loss: 4.4698
-Iter  500 | Train Loss: 1.5969
-Iter 1000 | Train Loss: 1.4514
-Iter 1500 | Train Loss: 1.4987
-Iter 2000 | Train Loss: 1.4713
-Iter 2500 | Train Loss: 1.4061
-
---- Generating Regular Expressions (Vanilla TDL) ---
-
-\w{1,})$
-^[A-Z]{1,21})?$
-^[\u00C0-\u9fa5]\d{2}:\d+)(?:\.[0-9])|([^,]+\,]?[0-9]{2(9A-Fa-f]{2})\b(\w*\{\}]
-[1-9+]*
-[A-Za-z]|[\w-]+@[\w*(?:[\\.\d+)
-("((\+?\t)(\d+)$
-^.*[A-Z]+),>)(\w+(?: *\S+)=|[>']{1,3}:){0,2})
-(-?)([.\-][1][1-9][a-z0-9\._\-\+]+\)@?([a-
---- Training Pure Connectionist Vanilla TDL (1990s SGD) on Regular Expressions ---
-Iter    0 | Train Loss: 4.5914
-Iter  500 | Train Loss: 1.7443
-Iter 1000 | Train Loss: 1.7712
-Iter 1500 | Train Loss: 1.7688
-Iter 2000 | Train Loss: 1.7117
-Iter 2500 | Train Loss: 1.6552
-
---- Generating Regular Expressions (Vanilla TDL - 1990s SGD) ---
-
-^([A-Z]\D)+)\d{4}-[0-9]{1})[a-z]+[\:]+)).(\w+]?$
-^([a-z])(\d{2}[:-zA-Z]+)[ \.[a-z]{2})
-.*\d{4})
-([0-9]{4}
-^[1-9]{1,4}
-[a-z]+$
-^((1)|([A-Z])(.*)
-(?=|([0-9 ])
-#( *(\d{3}-?\d{3})\s+\s)
-([.+\b[A-Za-zA-Z0-9]{0,5}([^ $){3}\)|)*\b*[^\s]*
-.*?(?=.*(?=(?:(?:[.
---- Testing Shannon's 1948 Markovian Text Generator ---
---- Training 5-Order Markov Model on 73249 characters ---
-Model built with 27457 unique states.
-
---- Generating Text (Claude Shannon's N-Gram Approximation) ---
-(\s|[.,])
-(\w+)?(?:/|$)
-(\w|)*[A-z])(?=.*\d)(?=.*[A-Z][a-z]) (\[[a-zA-Z]+((\ [A-Z]{1,2}(\.\d+)$
-^(([1-9]|[0-9+]*\/[a-zA-Z0-9_]+
-[a-zA-Z0-9_-]+(?:'[a-zA-Z + 0-9 + [!$%&'()*+\.-]\w+)*@\w+([\\.][/\S+/]+[\\.][/\S+/]+
-[0-9a-z._%+-]+@[a-z0-9]+)*)(\..*)
-(\d{4}$
-^[ \t]|$)[ \t]|$)[ \t]*)
- (\t)
- *"(\w+)
-^(\d{4}
-^((([0-1][0-9]{2})(\d{2})-(\d{3}$
-^[A-Za-z0-9-])+.)+([a-zA-Z '-.=#/]*$
-^[A-Z,0-9]{2}\d{2})(\-([a-z-]+\s?[a-zA-Z]+)?(,[a-zA-Z0-9-+])*@[A-Z0-9~!@#\$%\^&\*])
-^([0-9]{2,3}$
-([+-]?(\d{3})(?:(?![0-9a-f]{
+,?)
+([a-z] ?)*$
+^([0-9A-F]{8}[-]?([0-9]{3}$
+^\+\d{1,4})$
+^((?=.*[^\w\s]).{8,16}$
+^[a-zA-Z][A-Za-z\d]+)
+([0-9]{1,3}?-(\d{2} \d{2}
+\d{3,4})
+(^ *\S+ *$)|(^9(0{2}|([1-9][0-9]+
+^[A-Z0-9]+)*)(\.[a-z\.]{2,5})?(\.[a-zA-Z0-9_.+-]+)\/(\d{4}-\d{2})\s-\s\S+)\s+([\d,.].*)
+\/(\d+)\s*(.*?):
+[A-Z])(?=.+\..+).{0,255}(?:-|\s*)
+((?:(?:(\d{2,4}){1,3}(?:\..{2}))))$
+^(0[1-9]{1}[a-z])(?=.*(?=.{8,24}$
+^[1-9]|1[0-2]{1}\d\d)?(?:[\s].*)
+\(*\d\)\)
+\(([\d]+ +)|^(.*)(<|>)
+(\:(\w|\.|\,(?:\s*)?(\}?)(\/?)(\{?)([a-zA-Z0-9-]+\.[a
 Initializing Z3 SMT Solver for Boolean Superoptimization...
 Target Function (Raw PyTorch Logic):
 And(Or(And(C1_0, Q_0), And(Not(C1_0), Not(Q_0))),
@@ -1120,6 +924,30 @@ graph TD
     OR_0["OR Reduction"]:::op
     INV_0["Invert & Expand Mask"]:::op
     AND_0["Bitwise AND MUX"]:::op
+    C_1["Context Token (1)"]:::token
+    C_next_1["Context Token (2)"]:::token
+    XOR_1["XOR Gate (C_1 ^ Q)"]:::op
+    OR_1["OR Reduction"]:::op
+    INV_1["Invert & Expand Mask"]:::op
+    AND_1["Bitwise AND MUX"]:::op
+    C_2["Context Token (2)"]:::token
+    C_next_2["Context Token (3)"]:::token
+    XOR_2["XOR Gate (C_2 ^ Q)"]:::op
+    OR_2["OR Reduction"]:::op
+    INV_2["Invert & Expand Mask"]:::op
+    AND_2["Bitwise AND MUX"]:::op
+    C_3["Context Token (3)"]:::token
+    C_next_3["Context Token (4)"]:::token
+    XOR_3["XOR Gate (C_3 ^ Q)"]:::op
+    OR_3["OR Reduction"]:::op
+    INV_3["Invert & Expand Mask"]:::op
+    AND_3["Bitwise AND MUX"]:::op
+    C_4["Context Token (4)"]:::token
+    C_next_4["Context Token (5)"]:::token
+    XOR_4["XOR Gate (C_4 ^ Q)"]:::op
+    OR_4["OR Reduction"]:::op
+    INV_4["Invert & Expand Mask"]:::op
+    AND_4["Bitwise AND MUX"]:::op
     
     Q --> XOR_0
     C_0 --> XOR_0
@@ -1128,6 +956,34 @@ graph TD
     INV_0 --> AND_0
     C_next_0 --> AND_0
     AND_0 --> ACC
+    Q --> XOR_1
+    C_1 --> XOR_1
+    XOR_1 --> OR_1
+    OR_1 --> INV_1
+    INV_1 --> AND_1
+    C_next_1 --> AND_1
+    AND_1 --> ACC
+    Q --> XOR_2
+    C_2 --> XOR_2
+    XOR_2 --> OR_2
+    OR_2 --> INV_2
+    INV_2 --> AND_2
+    C_next_2 --> AND_2
+    AND_2 --> ACC
+    Q --> XOR_3
+    C_3 --> XOR_3
+    XOR_3 --> OR_3
+    OR_3 --> INV_3
+    INV_3 --> AND_3
+    C_next_3 --> AND_3
+    AND_3 --> ACC
+    Q --> XOR_4
+    C_4 --> XOR_4
+    XOR_4 --> OR_4
+    OR_4 --> INV_4
+    INV_4 --> AND_4
+    C_next_4 --> AND_4
+    AND_4 --> ACC
 ```
 
 
@@ -1136,7 +992,7 @@ graph TD
 # Fully minimized synthesized Boolean hardware circuit
 def predict_next_token_optimized(context, query):
     y = 0
-    for j in [0]:
+    for j in range(5):
         # 1. Word-level Z3 AST logic
         diff = ~(~(query ^ context[j])) # Invert since reduction needs 0 for match
         # 2. Bitwise reduction across 4 bits
@@ -1164,7 +1020,7 @@ def predict_next_token_optimized(context, query):
                          1)
               mask (- (bit-xor any-diff 1))]
           (bit-and mask (nth context (inc j)))))
-      [0])))
+      (range 5))))
 ```
 
 **Mathematica Implementation (`optimized_true_gpt.wls`):**
@@ -1195,7 +1051,11 @@ module predict_next_token_optimized #(
     output wire [NUM_BITS-1:0] y
 );
     // Fully unrolled combinational data-path
-    assign y = ((context_0 == query) ? context_1 : {NUM_BITS{1'b0}});
+    assign y = ((context_0 == query) ? context_1 : {NUM_BITS{1'b0}}) | 
+               ((context_1 == query) ? context_2 : {NUM_BITS{1'b0}}) | 
+               ((context_2 == query) ? context_3 : {NUM_BITS{1'b0}}) | 
+               ((context_3 == query) ? context_4 : {NUM_BITS{1'b0}}) | 
+               ((context_4 == query) ? context_5 : {NUM_BITS{1'b0}});
 endmodule
 ```
 

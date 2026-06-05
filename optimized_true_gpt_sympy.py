@@ -14,7 +14,7 @@ def induction_match(Context_Token, Query_Token, Z):
 
 def predict_next_token_sympy(context, query):
     y = 0
-    for j in [0]:
+    for j in range(5):
         Z = (context[j+1] >> 0) & 1
         y |= induction_match(context[j], query, Z)
     return y
