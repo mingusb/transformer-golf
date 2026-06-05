@@ -5,19 +5,25 @@ echo "=============================================="
 echo "    MicroGPT Automatic Compilation Pipeline   "
 echo "=============================================="
 
-# Use the shared parent virtual environment to prevent 20 subagents from exhausting the disk
+# Use the shared parent virtual environment
 source /home/b/microgpt/venv/bin/activate
 
-# 0. Generate Z3 Superoptimized AST for downstream consumption
-echo "[0/4] Running Z3 SAT/SMT Core Gate Synthesis..."
+# --- Phase 1: Mathematical Synthesis ---
+echo "[1/6] Running Z3 SAT/SMT Core Gate Synthesis..."
 cd scripts
 ../venv/bin/python superoptimize_gates.py
 cd ..
 
-# 0.5. Run the Task Evaluation and inject logs into README
-echo "[1/4] Running Induction Head Demonstration & Updating README..."
+# --- Phase 2: Core Training & Ground Truth Generation ---
+echo "[2/6] Running Model Training & Ground Truth Generation..."
 ./venv/bin/python compare_task.py > docs/last_run.log
-./venv/bin/python scripts/update_readme_logic.py
+
+# --- Phase 3: Hardware Transpilation ---
+echo "[3/6] Transpiling PyTorch Graph into Discrete Hardware..."
+./venv/bin/python scripts/transpile_circuit.py
+
+# --- Phase 4: Universal Verification & Scaling Baselines ---
+echo "[4/6] Verifying Hardware & Running Scaling Baselines..."
 if [ ! -d "ngn-apl" ]; then
     echo "Cloning ngn/apl APL interpreter..."
     git clone https://github.com/abrudz/ngn-apl.git
@@ -28,20 +34,15 @@ fi
 echo "--- Testing Shannon's 1948 Markovian Text Generator ---" >> docs/last_run.log
 ./venv/bin/python scripts/shannon_markov.py --corpus regex_corpus.txt --order 5 --length 500 >> docs/last_run.log
 
-# 1. Run the Equality Saturation Compiler
-echo "[2/4] Running Egglog Equality Saturation Optimizer..."
+# --- Phase 5: Mathematical Graph Optimization ---
+echo "[5/6] Optimizing AST & Superoptimizing Graph..."
 cd scripts
 ../venv/bin/python optimize.py
-cd ..
-
-# 1.5. Run SAT/SMT Superoptimization
-echo "[2.5/4] Running Z3 SAT/SMT Superoptimizer..."
-cd scripts
 ../venv/bin/python superoptimize.py >> ../docs/last_run.log
 cd ..
 
-# 2. Compile the Diagram
-echo "[3/4] Generating Combined LaTeX AST Diagram..."
+# --- Phase 6: Visualization & Documentation ---
+echo "[6/6] Generating Architecture Diagrams & Updating README..."
 cd scripts
 ../venv/bin/python ast_to_latex_combined.py > combined.tex
 pdflatex combined.tex > /dev/null 2>&1
@@ -51,9 +52,7 @@ mv combined_crop-1.png ../docs/microgpt_architecture.png
 rm combined*
 cd ..
 
-
 cat docs/last_run.log | ./venv/bin/python scripts/update_readme_logs.py
 
-# 3. Finish
-echo "[4/4] Done! Pipeline Complete."
+echo "[Done] Pipeline Complete."
 echo "=============================================="

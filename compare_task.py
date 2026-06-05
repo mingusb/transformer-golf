@@ -332,7 +332,7 @@ except OSError:
 
 def predict_next_token_optimized(context, query):
     if _lib is None:
-        raise RuntimeError("optimized_true_gpt.so not found. Please run update_readme_logic.py or build it manually.")
+        raise RuntimeError("optimized_true_gpt.so not found. Please run transpile_circuit.py or build it manually.")
     
     import numpy as np
     context_arr = np.array(context, dtype=np.int64)
