@@ -253,6 +253,7 @@ gate_7 = NOT A AND B(E, gate_5)
 gate_8 = A AND NOT B(gate_6, gate_7)
 
 This mathematical proof confirms the absolute minimum hardware gate-count!
+--- T
 ```
 <!-- Z3 SUPEROPTIMIZATION END -->
 
@@ -879,6 +880,206 @@ Model built with 27457 unique states.
 (.*)(,?)$
 (\d*\.\d*\s*[A-Fa-f0-9]{8})-([0-9]{0,2})?$
 ^\/([\
+Initializing Z3 SMT Solver for Boolean Superoptimization...
+Target Function (Raw PyTorch Logic):
+And(Or(And(C1_0, Q_0), And(Not(C1_0), Not(Q_0))),
+    And(Or(And(C1_1, Q_1), And(Not(C1_1), Not(Q_1))), E))
+
+Starting search for the absolute minimum gate-count circuit...
+Testing circuit size N = 1 gates...
+Testing circuit size N = 2 gates...
+Testing circuit size N = 3 gates...
+Testing circuit size N = 4 gates...
+
+SUCCESS! Found equivalent circuit with exactly 4 gates!
+gate_5 = XOR(Q_0, C1_0)
+gate_6 = XOR(C1_1, Q_1)
+gate_7 = NOT A AND B(E, gate_5)
+gate_8 = A AND NOT B(gate_6, gate_7)
+
+This mathematical proof confirms the absolute minimum hardware gate-count!
+--- Training Pure Connectionist MLP-Transformer on Regular Expressions ---
+Iter    0 | Train Loss: 4.7961
+Iter  500 | Train Loss: 1.6593
+Iter 1000 | Train Loss: 1.5637
+Iter 1500 | Train Loss: 1.4530
+Iter 2000 | Train Loss: 1.2790
+Iter 2500 | Train Loss: 1.0808
+
+--- Generating Regular Expressions (MLP-Transformer) ---
+
+^.{3,10}+$
+^([\w\d]+)\/([\da-zA-Z]+)+(,)+)\s?-*([+-]?:(?:\s|$|^|[^|^|]*\|\|){){1,25164}((?:\d.*)*[^\s]*)(\d)(?:\s|$|\s)
+(\s|\\.\d+)+(.*?)
+(\d[.,?!\!~!?!\d,\d]{330,64})
+(\.)(.*)\.{2}(.*)
+(\w)(.+)\,\30\d{15})
+(\d{4}.?)
+(\d)[0-3])+
+(([\d]+)(\/?:\d+)(.+)
+
+
+--- Training Pure Connectionist Recurrent-MLP LM on Regular Expressions ---
+Iter    0 | Train Loss: 4.7683
+Iter  500 | Train Loss: 1.4928
+Iter 1000 | Train Loss: 1.3083
+Iter 1500 | Train Loss: 1.0924
+Iter 2000 | Train Loss: 1.0593
+Iter 2500 | Train Loss: 0.9734
+
+--- Generating Regular Expressions (Recurrent-MLP) ---
+
+((\d{4})
+(\d\d?(?<=\-?(?!\*\d+\{))+
+(?<=[^ ])\/\/(?=^.{44})-([0-9]{4}){1,2}
+[\-\/]+[^>]*>
+<\/([0-9]{2})?(?=[.])[0-9a-fA-F]+$
+^[\u4e00-\u9FA5\d] ?
+.*[a-z]{2,4}$
+^([a-fA-F0-9A-Fa-f]{2,4} )
+([A-Z]{1,2}\.?){6,10}
+(?=\S*?[a-z])+$
+^(?=.*\d)(?=.*[A-Z])[0-9A
+
+
+--- Training Pure Connectionist Sparse Recurrent-MLP on Regular Expressions ---
+Iter    0 | Train Loss: 4.4900
+Iter  500 | Train Loss: 2.2138
+Iter 1000 | Train Loss: 2.0759
+Iter 1500 | Train Loss: 1.9015
+Iter 2000 | Train Loss: 1.9153
+Iter 2500 | Train Loss: 1.9050
+
+--- Generating Regular Expressions (Sparse Recurrent-MLP) ---
+
+<(\S+(?=.(^(?=?)?([0-9])([[0-9]
+\-?\d{8}|\d+)([a-zA-Z]{2}))([\]+[a-zA-Z0-[A-Z]]*\s)
+(.+)(0[A-Z]+
+[a-zA-Z]{11}\+\-\*\d+(?:\?) +\s+).*\d+)|((.+\([0-9]*[[0-_]|a-\w{8,})\.\\/\'?!@(/b
+(\_)*$
+^(?)
+([\u0-2-_]+)\"|]+(?=.|3[^,]?[1-9]{2})([\'(\S{2,5})?)([\(^(]
+
+--- Physical Neural Topology (Mermaid) ---
+```mermaid
+graph TD
+    classDef neuron fill:#f9f2e7,stroke:#d4a373,stroke-width:2px,color:#000;
+    N0(("N_0")):::neuron
+    N1(("N_1")):::neuron
+    N2(("N_2")):::neuron
+    N3(("N_3")):::neuron
+    N4(("N_4")):::neuron
+    N5(("N_5")):::neuron
+    N6(("N_6")):::neuron
+    N7(("N_7")):::neuron
+    N8(("N_8")):::neuron
+    N9(("N_9")):::neuron
+    N10(("N_10")):::neuron
+    N11(("N_11")):::neuron
+    N12(("N_12")):::neuron
+    N13(("N_13")):::neuron
+    N14(("N_14")):::neuron
+    N15(("N_15")):::neuron
+    N6 -->|"0.15"| N0
+    N8 -->|"-0.10"| N0
+    N10 -->|"0.50"| N0
+    N14 -->|"0.01"| N0
+    N8 -->|"-0.02"| N1
+    N13 -->|"0.41"| N1
+    N0 -->|"0.62"| N2
+    N2 -->|"0.42"| N2
+    N6 -->|"-0.35"| N2
+    N12 -->|"0.30"| N2
+    N1 -->|"0.58"| N3
+    N4 -->|"0.25"| N3
+    N5 -->|"0.16"| N4
+    N7 -->|"-0.35"| N4
+    N8 -->|"-0.14"| N4
+    N11 -->|"0.07"| N4
+    N6 -->|"0.03"| N5
+    N7 -->|"0.08"| N5
+    N13 -->|"0.04"| N5
+    N14 -->|"-0.01"| N5
+    N0 -->|"0.08"| N6
+    N0 -->|"0.07"| N7
+    N2 -->|"0.33"| N7
+    N11 -->|"-0.14"| N8
+    N13 -->|"0.68"| N8
+    N3 -->|"0.54"| N9
+    N7 -->|"-0.11"| N9
+    N2 -->|"0.33"| N10
+    N0 -->|"-0.16"| N11
+    N2 -->|"0.23"| N11
+    N5 -->|"0.22"| N11
+    N11 -->|"0.89"| N11
+    N12 -->|"-0.65"| N11
+    N2 -->|"0.39"| N12
+    N4 -->|"0.33"| N12
+    N7 -->|"-0.34"| N12
+    N4 -->|"0.35"| N13
+    N3 -->|"0.40"| N14
+```
+
+--- Training Pure Connectionist Vanilla TDL on Regular Expressions ---
+Iter    0 | Train Loss: 4.4698
+Iter  500 | Train Loss: 1.5969
+Iter 1000 | Train Loss: 1.4514
+Iter 1500 | Train Loss: 1.4987
+Iter 2000 | Train Loss: 1.4713
+Iter 2500 | Train Loss: 1.4061
+
+--- Generating Regular Expressions (Vanilla TDL) ---
+
+\w{1,})$
+^[A-Z]{1,21})?$
+^[\u00C0-\u9fa5]\d{2}:\d+)(?:\.[0-9])|([^,]+\,]?[0-9]{2(9A-Fa-f]{2})\b(\w*\{\}]
+[1-9+]*
+[A-Za-z]|[\w-]+@[\w*(?:[\\.\d+)
+("((\+?\t)(\d+)$
+^.*[A-Z]+),>)(\w+(?: *\S+)=|[>']{1,3}:){0,2})
+(-?)([.\-][1][1-9][a-z0-9\._\-\+]+\)@?([a-
+--- Training Pure Connectionist Vanilla TDL (1990s SGD) on Regular Expressions ---
+Iter    0 | Train Loss: 4.5914
+Iter  500 | Train Loss: 1.7443
+Iter 1000 | Train Loss: 1.7712
+Iter 1500 | Train Loss: 1.7688
+Iter 2000 | Train Loss: 1.7117
+Iter 2500 | Train Loss: 1.6552
+
+--- Generating Regular Expressions (Vanilla TDL - 1990s SGD) ---
+
+^([A-Z]\D)+)\d{4}-[0-9]{1})[a-z]+[\:]+)).(\w+]?$
+^([a-z])(\d{2}[:-zA-Z]+)[ \.[a-z]{2})
+.*\d{4})
+([0-9]{4}
+^[1-9]{1,4}
+[a-z]+$
+^((1)|([A-Z])(.*)
+(?=|([0-9 ])
+#( *(\d{3}-?\d{3})\s+\s)
+([.+\b[A-Za-zA-Z0-9]{0,5}([^ $){3}\)|)*\b*[^\s]*
+.*?(?=.*(?=(?:(?:[.
+--- Testing Shannon's 1948 Markovian Text Generator ---
+--- Training 5-Order Markov Model on 73249 characters ---
+Model built with 27457 unique states.
+
+--- Generating Text (Claude Shannon's N-Gram Approximation) ---
+(\s|[.,])
+(\w+)?(?:/|$)
+(\w|)*[A-z])(?=.*\d)(?=.*[A-Z][a-z]) (\[[a-zA-Z]+((\ [A-Z]{1,2}(\.\d+)$
+^(([1-9]|[0-9+]*\/[a-zA-Z0-9_]+
+[a-zA-Z0-9_-]+(?:'[a-zA-Z + 0-9 + [!$%&'()*+\.-]\w+)*@\w+([\\.][/\S+/]+[\\.][/\S+/]+
+[0-9a-z._%+-]+@[a-z0-9]+)*)(\..*)
+(\d{4}$
+^[ \t]|$)[ \t]|$)[ \t]*)
+ (\t)
+ *"(\w+)
+^(\d{4}
+^((([0-1][0-9]{2})(\d{2})-(\d{3}$
+^[A-Za-z0-9-])+.)+([a-zA-Z '-.=#/]*$
+^[A-Z,0-9]{2}\d{2})(\-([a-z-]+\s?[a-zA-Z]+)?(,[a-zA-Z0-9-+])*@[A-Z0-9~!@#\$%\^&\*])
+^([0-9]{2,3}$
+([+-]?(\d{3})(?:(?![0-9a-f]{
 Initializing Z3 SMT Solver for Boolean Superoptimization...
 Target Function (Raw PyTorch Logic):
 And(Or(And(C1_0, Q_0), And(Not(C1_0), Not(Q_0))),
