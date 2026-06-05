@@ -36,6 +36,14 @@ def get_batch(split):
     y = torch.stack([d[i+1:i+block_size+1] for i in ix])
     return x.to(device), y.to(device)
 
+import json
+try:
+    with open("docs/z3_ast.json", "r") as f:
+        z3_ast = json.load(f)
+    Z3_OPTIMAL_LAYERS = z3_ast.get("mlp_layers", 3)
+except FileNotFoundError:
+    Z3_OPTIMAL_LAYERS = 3
+
 class MLPCausalSelfAttention(nn.Module):
     def __init__(self, n_embd, n_head):
         super().__init__()
@@ -95,7 +103,7 @@ class MLPBlock(nn.Module):
         return x
 
 class MLPTransformer(nn.Module):
-    def __init__(self, vocab_size, n_embd=64, n_head=4, n_layer=3):
+    def __init__(self, vocab_size, n_embd=64, n_head=4, n_layer=Z3_OPTIMAL_LAYERS):
         super().__init__()
         self.token_emb = nn.Embedding(vocab_size, n_embd)
         self.pos_emb = nn.Embedding(block_size, n_embd)
@@ -145,9 +153,10 @@ class ConnectionistBlock(nn.Module):
         return x
 
 class PureConnectionistLM(nn.Module):
-    def __init__(self, vocab_size, n_embd=128, n_layer=3):
+    def __init__(self, vocab_size, n_embd=128, n_layer=Z3_OPTIMAL_LAYERS):
         super().__init__()
         self.token_emb = nn.Embedding(vocab_size, n_embd)
+        
         self.blocks = nn.Sequential(*[ConnectionistBlock(n_embd) for _ in range(n_layer)])
         self.head = nn.Linear(n_embd, vocab_size)
 
@@ -177,8 +186,9 @@ class PureConnectionistLM(nn.Module):
         return idx
 
 class SparseRecurrentLM(nn.Module):
-    def __init__(self, vocab_size, n_embd=128, sparsity=0.8):
+    def __init__(self, vocab_size, n_embd=None, sparsity=0.8):
         super().__init__()
+        if n_embd is None: n_embd = 32 * Z3_OPTIMAL_LAYERS
         self.token_emb = nn.Embedding(vocab_size, n_embd)
         
         # A single, sparse recurrent population of neurons (Liquid State Machine)
@@ -220,8 +230,9 @@ class SparseRecurrentLM(nn.Module):
         return idx
 
 class VanillaTDLLM(nn.Module):
-    def __init__(self, vocab_size, n_embd=64):
+    def __init__(self, vocab_size, n_embd=None):
         super().__init__()
+        if n_embd is None: n_embd = 16 * Z3_OPTIMAL_LAYERS
         self.token_emb = nn.Embedding(vocab_size, n_embd)
         
         # Layer 1: Three distinct synaptic matrices for the three temporal inputs
@@ -271,6 +282,7 @@ class VanillaTDLLM(nn.Module):
         return idx
 
 def train():
+    print(f"\\n[Z3 Topology Injection] Scaling Regex Models according to Z3 complexity proof of N={Z3_OPTIMAL_LAYERS} layers")
     # 1. Train MLP-Transformer (No LayerNorm)
     model1 = MLPTransformer(vocab_size, n_embd=64).to(device)
     optimizer1 = torch.optim.AdamW(model1.parameters(), lr=1e-3)

@@ -15,6 +15,7 @@ class SymPyStructuredNet(nn.Module):
             with open("docs/z3_ast.json", "r") as f:
                 z3_ast = json.load(f)
             num_layers = z3_ast.get("mlp_layers", 2)
+            print(f"\n[Z3 Constraint Injection] Structuring Neuro-Symbolic MLP with {num_layers} hidden layers based on mathematical proof!")
         except FileNotFoundError:
             num_layers = 2
             
