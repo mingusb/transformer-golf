@@ -152,4 +152,17 @@ try:
 except Exception as e:
     print(f"Error parsing shakespeare logs: {e}")
 
+# Extract Z3 block
+try:
+    z3_start = logs.find("Initializing Z3 SMT Solver")
+    if z3_start != -1:
+        z3_end = logs.find("This mathematical proof confirms", z3_start)
+        z3_block = logs[z3_start:z3_end + 80].strip()
+        z3_injection = f"""<!-- Z3 SUPEROPTIMIZATION START -->\n```text\n{z3_block}\n```\n<!-- Z3 SUPEROPTIMIZATION END -->"""
+        readme = re.sub(r'<!-- Z3 SUPEROPTIMIZATION START -->.*?<!-- Z3 SUPEROPTIMIZATION END -->', lambda _: z3_injection, readme, flags=re.DOTALL)
+        with open("README.md", "w") as f:
+            f.write(readme)
+except Exception as e:
+    print(f"Error parsing z3 logs: {e}")
+
 print("README.md has been automatically updated with the latest performance logs!")

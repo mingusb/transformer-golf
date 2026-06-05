@@ -19,9 +19,12 @@ model.eval()
 context_len = SEQ_LEN - 1
 active_positions = []
 
+from scripts.task_spec import sequence_target_offset
+offset = sequence_target_offset()
+
 # Empirically probe the model to derive its circuit logic!
 # For each possible match position in the context:
-for pos in range(context_len - 1):
+for pos in range(context_len - offset):
     # Construct a test sequence: e.g. [0, 1, 2, 3, 4, 5, query=pos_token]
     test_seq = list(range(context_len))
     query = test_seq[pos]
@@ -35,7 +38,7 @@ for pos in range(context_len - 1):
         
     # The model empirically routed the query to `pos` and copied `pred`.
     # Let's find where `pred` came from in the context
-    if pred == test_seq[pos + 1]:
+    if pred == test_seq[pos + offset]:
         active_positions.append(pos)
 
 import math
@@ -45,10 +48,12 @@ num_bits = max(1, math.ceil(math.log2(VOCAB_SIZE)))
 code = []
 code.append("def get_bit(value, bit_index):")
 code.append("    return (value >> bit_index) & 1")
-code.append("")
-code.append("def bool_eq(a, b):")
-code.append("    # XNOR gate")
-code.append("    return (a & b) | ((~a & 1) & (~b & 1))")
+import json
+with open("docs/z3_ast.json", "r") as f:
+    z3_ast = json.load(f)
+
+for line in z3_ast["python_code"].split("\n"):
+    code.append(line)
 code.append("")
 code.append("def predict_next_token(context, query):")
 code.append(f"    # Extract bits for each token (Vocab size requires {num_bits} bits)")
@@ -82,6 +87,13 @@ code.append("    return y")
 bitwise_block = "\n".join(code)
 
 # Generate ultra-dense LLVM-optimized word-level integer sequence dynamically
+z3_to_llvm = {
+    0: "0", 1: "~({a} | {b})", 2: "({a} & ~{b})", 3: "~{b}",
+    4: "(~{a} & {b})", 5: "~{a}", 6: "({a} ^ {b})", 7: "~({a} & {b})",
+    8: "({a} & {b})", 9: "~({a} ^ {b})", 10: "{b}", 11: "({a} | ~{b})",
+    12: "{a}", 13: "(~{a} | {b})", 14: "({a} | {b})", 15: "-1"
+}
+
 llvm_code = []
 llvm_code.append("def predict_next_token_optimized(context, query):")
 llvm_code.append("    y = 0")
@@ -89,8 +101,16 @@ if len(active_positions) == context_len - 1:
     llvm_code.append(f"    for j in range({context_len - 1}):")
 else:
     llvm_code.append(f"    for j in {active_positions}:")
-llvm_code.append("        # 1. Word-level XNOR (diff is 0 only if tokens match exactly)")
-llvm_code.append("        diff = context[j] ^ query")
+llvm_code.append("        # 1. Word-level Z3 AST logic")
+for g in z3_ast["raw_ast"]:
+    a_mapped = "context[j]" if g["in_a"] == "a" else "query" if g["in_a"] == "b" else g["in_a"]
+    b_mapped = "context[j]" if g["in_b"] == "a" else "query" if g["in_b"] == "b" else g["in_b"]
+    expr = z3_to_llvm[g["op"]].format(a=a_mapped, b=b_mapped)
+    if g == z3_ast["raw_ast"][-1]:
+        llvm_code.append(f"        diff = ~({expr}) # Invert since reduction needs 0 for match")
+    else:
+        llvm_code.append(f"        {g['id']} = {expr}")
+
 shift_or = " | ".join([f"(diff >> {i})" for i in range(num_bits)])
 llvm_code.append(f"        # 2. Bitwise reduction across {num_bits} bits")
 llvm_code.append(f"        any_diff = ({shift_or}) & 1")
@@ -130,18 +150,29 @@ import subprocess
 import re
 
 # Generate the C implementation
-c_code = """#include <stdint.h>
+c_exprs = []
+for g in z3_ast["raw_ast"]:
+    a_mapped = "context[j]" if g["in_a"] == "a" else "query" if g["in_a"] == "b" else g["in_a"]
+    b_mapped = "context[j]" if g["in_b"] == "a" else "query" if g["in_b"] == "b" else g["in_b"]
+    expr = z3_to_llvm[g["op"]].format(a=a_mapped, b=b_mapped)
+    if g == z3_ast["raw_ast"][-1]:
+        c_exprs.append(f"        int64_t diff = ~({expr});")
+    else:
+        c_exprs.append(f"        int64_t {g['id']} = {expr};")
+c_logic = "\n".join(c_exprs)
 
-int64_t predict_next_token_optimized(const int64_t* context, int64_t context_len, int64_t query) {
+c_code = f"""#include <stdint.h>
+
+int64_t predict_next_token_optimized(const int64_t* context, int64_t context_len, int64_t query) {{
     int64_t y = 0;
-    for (int64_t j = 0; j < context_len - 1; ++j) {
-        int64_t diff = context[j] ^ query;
+    for (int64_t j = 0; j < context_len - 1; ++j) {{
+{c_logic}
         int64_t any_diff = (diff | (diff >> 1) | (diff >> 2) | (diff >> 3)) & 1;
         int64_t mask = -(any_diff ^ 1);
         y |= mask & context[j+1];
-    }
+    }}
     return y;
-}
+}}
 """
 
 with open("optimized_true_gpt.c", "w") as f:
@@ -235,12 +266,29 @@ While the backend logic circuit executing our tests is compiled using extremely 
 """
 
 # Generate elegant Clojure implementation
+z3_to_clj = {
+    0: "0", 1: "(bit-not (bit-or {a} {b}))", 2: "(bit-and {a} (bit-not {b}))", 3: "(bit-not {b})",
+    4: "(bit-and (bit-not {a}) {b})", 5: "(bit-not {a})", 6: "(bit-xor {a} {b})", 7: "(bit-not (bit-and {a} {b}))",
+    8: "(bit-and {a} {b})", 9: "(bit-not (bit-xor {a} {b}))", 10: "{b}", 11: "(bit-or {a} (bit-not {b}))",
+    12: "{a}", 13: "(bit-or (bit-not {a}) {b})", 14: "(bit-or {a} {b})", 15: "-1"
+}
+
 clj_code = []
 clj_code.append("(defn predict-next-token-optimized [context query]")
 clj_code.append("  (reduce bit-or 0")
 clj_code.append("    (map")
 clj_code.append("      (fn [j]")
-clj_code.append("        (let [diff (bit-xor (nth context j) query)")
+clj_lets = []
+for g in z3_ast["raw_ast"]:
+    a_mapped = "(nth context j)" if g["in_a"] == "a" else "query" if g["in_a"] == "b" else g["in_a"]
+    b_mapped = "(nth context j)" if g["in_b"] == "a" else "query" if g["in_b"] == "b" else g["in_b"]
+    expr = z3_to_clj[g["op"]].format(a=a_mapped, b=b_mapped)
+    if g == z3_ast["raw_ast"][-1]:
+        clj_lets.append(f"diff (bit-not {expr})")
+    else:
+        clj_lets.append(f"{g['id']} {expr}")
+clj_code.append("        (let [" + "\n              ".join(clj_lets))
+
 shift_or_clj = "\n                                 ".join([f"(bit-shift-right diff {i})" for i in range(num_bits)])
 clj_code.append(f"              any-diff (bit-and")
 clj_code.append(f"                         (bit-or {shift_or_clj})")
@@ -284,12 +332,32 @@ v_block = "\n".join(v_code)
 with open("optimized_true_gpt.v", "w") as f:
     f.write(v_block)
 
-apl_code = "predict_next_token ← { +/ (0 , ¯1 ↓ ⍺ = ⍵) × ⍺ }"
+z3_to_apl = {
+    0: "0", 1: "~(⍺∨⍵)", 2: "(⍺∧~⍵)", 3: "~⍵",
+    4: "(~⍺∧⍵)", 5: "~⍺", 6: "(⍺≠⍵)", 7: "~(⍺∧⍵)",
+    8: "(⍺∧⍵)", 9: "(⍺=⍵)", 10: "⍵", 11: "(⍺∨~⍵)",
+    12: "⍺", 13: "(~⍺∨⍵)", 14: "(⍺∨⍵)", 15: "1"
+}
+
+apl_expr = z3_to_apl[z3_ast["raw_ast"][-1]["op"]]
+apl_expr = z3_to_apl[z3_ast["raw_ast"][-1]["op"]].replace("⍺", "context").replace("⍵", "query")
+# APL shift array syntax handles negative offsets for right shifts
+apl_code = f"predict_next_token ← {{ +/ (0 , {-offset} ↓ {apl_expr.replace('context', '⍺').replace('query', '⍵')}) × ⍺ }}"
 
 with open("optimized_true_gpt.apl", "w") as f:
     f.write(apl_code + "\n")
 
-mma_code = "PredictNextToken[context_, query_] := Total[ReplacePart[RotateRight[Boole[Map[# == query &, context]]], 1 -> 0] * context]"
+z3_to_mma = {
+    0: "0", 1: "BitNot[BitOr[#1, #2]]", 2: "BitAnd[#1, BitNot[#2]]", 3: "BitNot[#2]",
+    4: "BitAnd[BitNot[#1], #2]", 5: "BitNot[#1]", 6: "BitXor[#1, #2]", 7: "BitNot[BitAnd[#1, #2]]",
+    8: "BitAnd[#1, #2]", 9: "BitNot[BitXor[#1, #2]]", 10: "#2", 11: "BitOr[#1, BitNot[#2]]",
+    12: "#1", 13: "BitOr[BitNot[#1], #2]", 14: "BitOr[#1, #2]", 15: "-1"
+}
+
+mma_expr = z3_to_mma[z3_ast["raw_ast"][-1]["op"]].replace("#1", "#").replace("#2", "query")
+# We test if the expression reduces equivalently to the target bits. For XNOR (9) it yields -1.
+mma_truth_val = "-1" if z3_ast["raw_ast"][-1]["op"] == 9 else "0"
+mma_code = f"PredictNextToken[context_, query_] := Total[ReplacePart[RotateRight[Boole[Map[{mma_expr} == {mma_truth_val} &, context]], {offset}], 1 -> 0] * context]"
 
 with open("optimized_true_gpt.wls", "w") as f:
     f.write(mma_code + "\n")

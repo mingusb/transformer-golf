@@ -1,3 +1,26 @@
+def test_llvm():
+    import json
+    import ctypes
+    import os
+    import numpy as np
+    
+    with open("docs/test_data.json", "r") as f:
+        data = json.load(f)
+        
+    _lib = ctypes.CDLL(os.path.abspath("optimized_true_gpt.so"))
+    _lib.predict_next_token_optimized.argtypes = [ctypes.POINTER(ctypes.c_int64), ctypes.c_int64, ctypes.c_int64]
+    _lib.predict_next_token_optimized.restype = ctypes.c_int64
+    
+    correct = 0
+    for i in range(len(data['x'])):
+        ctx_arr = np.array(data['x'][i], dtype=np.int64)
+        ctx_ptr = ctx_arr.ctypes.data_as(ctypes.POINTER(ctypes.c_int64))
+        if _lib.predict_next_token_optimized(ctx_ptr, len(data['x'][i]), data['q'][i]) == data['y'][i]:
+            correct += 1
+            
+    print("\\n--- Testing LLVM-Optimized Integer Hardware Circuit ---")
+    print(f"LLVM Circuit | Test Acc: {(correct * 100.0) / len(data['x']):.1f}%")
+
 import json
 import os
 import subprocess
@@ -104,8 +127,11 @@ def test_apl():
     with open("docs/test_data.json", "r") as f:
         data = json.load(f)
         
+    with open("optimized_true_gpt.apl", "r") as f:
+        apl_impl = f.read().strip()
+        
     apl_script = []
-    apl_script.append("predict_next_token ← { +/ (0 , ¯1 ↓ ⍺ = ⍵) × ⍺ }")
+    apl_script.append(apl_impl)
     apl_script.append("correct ← 0")
     
     for i in range(len(data['x'])):
@@ -131,8 +157,11 @@ def test_mathematica():
     with open("docs/test_data.json", "r") as f:
         data = json.load(f)
         
+    with open("optimized_true_gpt.wls", "r") as f:
+        mma_impl = f.read().strip()
+        
     mma_script = []
-    mma_script.append("PredictNextToken[context_, query_] := Total[ReplacePart[RotateRight[Boole[Map[# == query &, context]]], 1 -> 0] * context];")
+    mma_script.append(mma_impl)
     mma_script.append("correct = 0;")
     
     for i in range(len(data['x'])):
@@ -188,6 +217,7 @@ def test_sympy():
     print(f"SymPy Circuit | Test Acc: {(correct * 100.0) / len(data['x']):.1f}%")
 
 if __name__ == "__main__":
+    test_llvm()
     test_clojure()
     test_sympy()
     test_mathematica()

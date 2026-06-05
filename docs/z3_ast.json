@@ -1,0 +1,12 @@
+{
+  "python_code": "def bool_eq(a, b):\n    # Z3 Mathematically Superoptimized Gate\n    return ~(b ^ a) & 1",
+  "mlp_layers": 1,
+  "raw_ast": [
+    {
+      "id": "gate_2",
+      "op": 9,
+      "in_a": "b",
+      "in_b": "a"
+    }
+  ]
+}

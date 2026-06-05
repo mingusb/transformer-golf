@@ -10,21 +10,26 @@ class SymPyStructuredNet(nn.Module):
         super().__init__()
         self.emb = nn.Embedding(vocab_size, hidden_dim)
         
-        self.match_mlp = nn.Sequential(
-            nn.Linear(hidden_dim * 2, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, 1)
-        )
-        
-        self.output_mlp = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, vocab_size)
-        )
+        import json
+        try:
+            with open("docs/z3_ast.json", "r") as f:
+                z3_ast = json.load(f)
+            num_layers = z3_ast.get("mlp_layers", 2)
+        except FileNotFoundError:
+            num_layers = 2
+            
+        def build_mlp(in_d, out_d, hidden_d, layers):
+            mods = []
+            current_in = in_d
+            for _ in range(layers):
+                mods.append(nn.Linear(current_in, hidden_d))
+                mods.append(nn.ReLU())
+                current_in = hidden_d
+            mods.append(nn.Linear(current_in, out_d))
+            return nn.Sequential(*mods)
+            
+        self.match_mlp = build_mlp(hidden_dim * 2, 1, hidden_dim, num_layers)
+        self.output_mlp = build_mlp(hidden_dim, vocab_size, hidden_dim, num_layers)
 
     def forward(self, x):
         ctx = x[:, :-1]

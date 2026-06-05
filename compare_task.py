@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import random
 from torch.utils.data import Dataset, DataLoader
-import triton_kernel
 
 # --- 1. The Task: Pure Induction Head (Dynamic Bigram) ---
 # The sequence is a string of random tokens. The final token is a query.
@@ -15,16 +14,40 @@ SEQ_LEN = 7 # 6 context tokens + 1 query token
 def generate_dataset(num_samples):
     pass # Replaced by InductionDataset
 
+import math
+from scripts.task_spec import bitwise_match_logic, sequence_target_offset
+
 class InductionDataset(Dataset):
     def __init__(self, num_samples):
         self.num_samples = num_samples
-        # Pre-generate entire dataset using vectorized PyTorch operations
-        context = torch.rand(num_samples, VOCAB_SIZE).argsort(dim=-1)[:, :SEQ_LEN - 1]
-        query_idx = torch.randint(0, SEQ_LEN - 2, (num_samples,))
-        query = torch.gather(context, 1, query_idx.unsqueeze(1)).squeeze(1)
-        target = torch.gather(context, 1, (query_idx + 1).unsqueeze(1)).squeeze(1)
-        self.seqs = torch.cat([context, query.unsqueeze(1)], dim=1)
-        self.targets = target
+        
+        # Pre-generate dataset using dynamic logic from task_spec
+        X = torch.randint(0, VOCAB_SIZE, (num_samples, SEQ_LEN))
+        Y = torch.zeros(num_samples, dtype=torch.long)
+        offset = sequence_target_offset()
+        
+        num_bits = max(1, math.ceil(math.log2(VOCAB_SIZE)))
+        def check_match(a, b):
+            for i in range(num_bits):
+                a_bit = (a >> i) & 1
+                b_bit = (b >> i) & 1
+                if not bitwise_match_logic(a_bit, b_bit):
+                    return False
+            return True
+            
+        for i in range(num_samples):
+            query = X[i, -1].item()
+            context = X[i, :-1].tolist()
+            
+            target = 0
+            for j in range(len(context) - offset):
+                if check_match(context[j], query):
+                    target = context[j+offset]
+                    break
+            Y[i] = target
+            
+        self.seqs = X
+        self.targets = Y
 
     def __len__(self):
         return self.num_samples
@@ -47,7 +70,7 @@ class MicroGPT(nn.Module):
         self.layers = nn.ModuleList()
         for _ in range(n_layer):
             layer = nn.ModuleDict({
-                'attn': triton_kernel.TritonFusedAttention(n_embd, n_head, batch_first=True, bias=use_bias)
+                'attn': nn.MultiheadAttention(n_embd, n_head, batch_first=True, bias=use_bias)
             })
             if self.use_ln:
                 layer['ln1'] = nn.LayerNorm(n_embd, elementwise_affine=use_bias)
@@ -74,7 +97,7 @@ class MicroGPT(nn.Module):
         for layer in self.layers:
             # Attention block
             nx = layer['ln1'](x) if self.use_ln else x
-            attn_out, _ = layer['attn'](nx, nx, nx, is_causal=True)
+            attn_out, _ = layer['attn'](nx, nx, nx, attn_mask=mask, is_causal=True)
             x = x + attn_out
             
             # Optional MLP block
@@ -258,9 +281,15 @@ def train(model, name, train_dataset, eval_X_train, eval_Y_train, eval_X_test, e
 def get_bit(value, bit_index):
     return (value >> bit_index) & 1
 
-def bool_eq(a, b):
-    # XNOR gate
-    return (a & b) | ((~a & 1) & (~b & 1))
+import json
+import os
+try:
+    with open("docs/z3_ast.json", "r") as f:
+        z3_ast = json.load(f)
+    exec(z3_ast["python_code"], globals())
+except FileNotFoundError:
+    def bool_eq(a, b):
+        return (a & b) | ((~a & 1) & (~b & 1))
 
 def predict_next_token(context, query):
     num_bits = 4
@@ -377,6 +406,8 @@ if __name__ == "__main__":
             markov_dict[ctx_tuple] = []
         markov_dict[ctx_tuple].append(y.item())
     
+
+
     # Predict by picking the most common following token for the N-gram context
     shannon_correct = 0
     for x, y in zip(eval_X_test, eval_Y_test):
@@ -400,10 +431,6 @@ if __name__ == "__main__":
     bool_correct = sum(predict_next_token(x[:-1].tolist(), x[-1].item()) == y.item() for x, y in zip(eval_X_test, eval_Y_test))
     print(f"Boolean Circuit | Test Acc: {bool_correct / len(eval_X_test) * 100:.1f}%")
 
-    print("\n--- Testing LLVM-Optimized Integer Hardware Circuit ---")
-    import numpy as np
-    llvm_correct = sum(predict_next_token_optimized(x[:-1].numpy().astype(np.int64), x[-1].item()) == y.item() for x, y in zip(eval_X_test, eval_Y_test))
-    print(f"LLVM Circuit | Test Acc: {llvm_correct / len(eval_X_test) * 100:.1f}%")
 
     import json
     test_data = {"x": [x[:-1].tolist() for x in eval_X_test], "y": [y.item() for y in eval_Y_test], "q": [x[-1].item() for x in eval_X_test]}

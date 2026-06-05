@@ -197,39 +197,66 @@ Results:
 <!-- PERFORMANCE LOGS START -->
 ```text
 --- Training 3-Layer MLP ---
-MLP - Epoch  40 | Train Loss: 1.5253 | Train Acc: 35.6% | Test Acc: 29.1%
+MLP - Epoch  40 | Train Loss: 0.6868 | Train Acc: 80.1% | Test Acc: 74.6%
 
 --- Training MicroGPT (2-Layer Attention-Only, No LN, No Bias) ---
-GPT-PureAttn - Epoch  20 | Train Loss: 0.0503 | Train Acc: 98.0% | Test Acc: 97.4%
+GPT-PureAttn - Epoch  20 | Train Loss: 0.8527 | Train Acc: 78.1% | Test Acc: 74.3%
 
 --- Training SymPy-Structured MLP Network ---
-SymPy-Structured MLP | Test Acc: 100.0%
+SymPy-Structured MLP | Test Acc: 98.9%
 
 --- Testing Shannon N-Gram Markov Baseline ---
-Shannon Markov | Test Acc: 6.8%
+Shannon Markov | Test Acc: 6.9%
 
 --- Testing Boolean Logic Circuit Equivalency ---
-Boolean Circuit | Test Acc: 100.0%
+Boolean Circuit | Test Acc: 97.5%
 
 --- Testing SymPy Functional Abstraction Circuit ---
-SymPy Circuit | Test Acc: 15.1%
+SymPy Circuit | Test Acc: 73.3%
+
 
 --- Testing LLVM-Optimized Integer Hardware Circuit ---
-LLVM Circuit | Test Acc: 100.0%
+LLVM Circuit | Test Acc: 97.5%
 
 --- Testing Clojure Integer Hardware Circuit ---
-Clojure Circuit | Test Acc: 100.0%
+Clojure Circuit | Test Acc: 80.7%
 
 --- Testing Mathematica Hardware Circuit ---
-Mathematica Circuit | Test Acc: 100.0%
+Mathematica Circuit | Test Acc: ERROR
 
 --- Testing APL Array Language Circuit ---
-APL Circuit | Test Acc: 100.0%
+APL Circuit | Test Acc: 66.4%
 
 --- Testing Verilog RTL Hardware Circuit ---
-Verilog Circuit | Test Acc: 100.0%
+Verilog Circuit | Test Acc: 80.7%
 ```
 <!-- PERFORMANCE LOGS END -->
+
+### Z3 SAT/SMT Superoptimization
+<!-- Z3 SUPEROPTIMIZATION START -->
+```text
+Initializing Z3 SMT Solver for Boolean Superoptimization...
+Target Function (Raw PyTorch Logic):
+And(Or(And(C1_0, Q_0), And(Not(C1_0), Not(Q_0))),
+    And(Or(And(C1_1, Q_1), And(Not(C1_1), Not(Q_1))), E))
+
+Starting search for the absolute minimum gate-count circuit...
+Testing circuit size N = 1 gates...
+Testing circuit size N = 2 gates...
+Testing circuit size N = 3 gates...
+Testing circuit size N = 4 gates...
+
+SUCCESS! Found equivalent circuit with exactly 4 gates!
+gate_5 = XOR(Q_0, C1_0)
+gate_6 = XOR(C1_1, Q_1)
+gate_7 = NOT A AND B(E, gate_5)
+gate_8 = A AND NOT B(gate_6, gate_7)
+
+This mathematical proof confirms the absolute minimum hardware gate-count!
+```
+<!-- Z3 SUPEROPTIMIZATION END -->
+
+
 
 </details>
 
@@ -262,10 +289,9 @@ By querying the frozen weights of `gpt.pt`, we empirically extracted the followi
 # Automatically transpiled from gpt.pt weights
 def get_bit(value, bit_index):
     return (value >> bit_index) & 1
-
 def bool_eq(a, b):
-    # XNOR gate
-    return (a & b) | ((~a & 1) & (~b & 1))
+    # Z3 Mathematically Superoptimized Gate
+    return ~(b ^ a) & 1
 
 def predict_next_token(context, query):
     # Extract bits for each token (Vocab size requires 4 bits)
@@ -281,10 +307,10 @@ def predict_next_token(context, query):
 
     # Output token y is context[j+1] if M[j] == 1
     y_bits = [0] * 4
-    y_bits[0] = (M[0] & ctx_bits[1][0]) | (M[1] & ctx_bits[2][0]) | (M[2] & ctx_bits[3][0]) | (M[3] & ctx_bits[4][0]) | (M[4] & ctx_bits[5][0])
-    y_bits[1] = (M[0] & ctx_bits[1][1]) | (M[1] & ctx_bits[2][1]) | (M[2] & ctx_bits[3][1]) | (M[3] & ctx_bits[4][1]) | (M[4] & ctx_bits[5][1])
-    y_bits[2] = (M[0] & ctx_bits[1][2]) | (M[1] & ctx_bits[2][2]) | (M[2] & ctx_bits[3][2]) | (M[3] & ctx_bits[4][2]) | (M[4] & ctx_bits[5][2])
-    y_bits[3] = (M[0] & ctx_bits[1][3]) | (M[1] & ctx_bits[2][3]) | (M[2] & ctx_bits[3][3]) | (M[3] & ctx_bits[4][3]) | (M[4] & ctx_bits[5][3])
+    y_bits[0] = (M[0] & ctx_bits[1][0])
+    y_bits[1] = (M[0] & ctx_bits[1][1])
+    y_bits[2] = (M[0] & ctx_bits[1][2])
+    y_bits[3] = (M[0] & ctx_bits[1][3])
 
     # Reconstruct output integer from bits
     y = y_bits[0] | (y_bits[1] << 1) | (y_bits[2] << 2) | (y_bits[3] << 3)
@@ -314,7 +340,7 @@ def induction_match(Context_Token, Query_Token, Z):
 
 def predict_next_token_sympy(context, query):
     y = 0
-    for j in range(5):
+    for j in [0]:
         Z = (context[j+1] >> 0) & 1
         y |= induction_match(context[j], query, Z)
     return y
@@ -653,42 +679,36 @@ graph TD
     N13(("N_13")):::neuron
     N14(("N_14")):::neuron
     N15(("N_15")):::neuron
-    N5 -->|"-0.03"| N0
-    N7 -->|"0.79"| N0
-    N0 -->|"0.45"| N1
-    N1 -->|"0.43"| N1
-    N2 -->|"-0.82"| N1
-    N13 -->|"-0.80"| N2
-    N4 -->|"0.22"| N3
-    N7 -->|"0.10"| N3
-    N15 -->|"-0.10"| N3
-    N5 -->|"0.59"| N4
-    N9 -->|"0.71"| N4
-    N11 -->|"0.44"| N4
-    N3 -->|"-0.17"| N5
-    N0 -->|"-0.09"| N6
-    N4 -->|"0.33"| N6
-    N9 -->|"0.69"| N6
-    N7 -->|"0.21"| N7
-    N8 -->|"0.13"| N7
-    N11 -->|"-0.41"| N7
-    N3 -->|"0.03"| N8
-    N7 -->|"0.17"| N8
-    N9 -->|"0.30"| N8
-    N10 -->|"0.02"| N8
-    N6 -->|"0.56"| N9
-    N11 -->|"0.23"| N9
-    N4 -->|"0.46"| N10
-    N8 -->|"0.19"| N10
+    N2 -->|"0.61"| N0
+    N12 -->|"0.25"| N2
+    N10 -->|"0.07"| N4
+    N7 -->|"-0.01"| N5
+    N12 -->|"0.53"| N5
+    N7 -->|"0.24"| N6
+    N8 -->|"-0.17"| N6
+    N1 -->|"0.40"| N7
+    N3 -->|"0.20"| N7
+    N6 -->|"0.62"| N7
+    N12 -->|"-0.02"| N7
+    N13 -->|"-0.01"| N7
+    N0 -->|"-0.14"| N8
+    N2 -->|"-0.52"| N8
+    N5 -->|"0.39"| N8
+    N6 -->|"-0.12"| N8
+    N0 -->|"0.12"| N9
+    N6 -->|"0.43"| N10
+    N7 -->|"0.24"| N10
+    N9 -->|"-0.42"| N10
+    N9 -->|"0.04"| N11
+    N2 -->|"0.06"| N12
+    N5 -->|"0.53"| N12
     N11 -->|"0.52"| N12
-    N14 -->|"0.08"| N12
-    N15 -->|"0.55"| N12
-    N12 -->|"0.70"| N13
-    N7 -->|"0.46"| N14
-    N8 -->|"0.13"| N14
-    N12 -->|"0.47"| N15
-    N13 -->|"0.48"| N15
-    N15 -->|"0.17"| N15
+    N4 -->|"0.86"| N13
+    N6 -->|"-0.17"| N14
+    N8 -->|"0.41"| N14
+    N13 -->|"0.40"| N14
+    N15 -->|"0.68"| N14
+    N13 -->|"0.45"| N15
 ```
 <!-- LITERAL TRAINED BRAIN END -->
 
@@ -735,111 +755,104 @@ Training these architectures on the `regex_corpus` dataset successfully converge
 <!-- REGEX LOGS START -->
 ```text
 --- Training Pure Connectionist MLP-Transformer on Regular Expressions ---
-Iter    0 | Train Loss: 4.8182
-Iter  500 | Train Loss: 1.6981
-Iter 1000 | Train Loss: 1.4487
-Iter 1500 | Train Loss: 1.4015
-Iter 2000 | Train Loss: 1.2296
-Iter 2500 | Train Loss: 1.1077
+Iter    0 | Train Loss: 4.9368
+Iter  500 | Train Loss: 1.7052
+Iter 1000 | Train Loss: 1.4636
+Iter 1500 | Train Loss: 1.3252
+Iter 2000 | Train Loss: 1.2620
+Iter 2500 | Train Loss: 1.1734
 
 --- Generating Regular Expressions (MLP-Transformer) ---
 
-[:][[:wordight:]]*\b)
-([[:word:]]|[[:word:]]|[^[:digigrd:]]{8}|[^ ]+|[,}]\d[,]
-([0-9]|3[0-1]|2(3[0-2])\d{3}[-])|(1[0-2][0-2])[0-1][0-9][0-3][0-9][0-9][0-9][0-9][0-9])
-[0-9]\/[0-9][0-9]-[0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-5][0-9]$
-^[1][0-9][0-9][0-9]-[
+^(\d+8)-(\d+)(\d+)\.+(\d+)\.(\d+)(\.\d+)?$)(\.(\w+)(\(\w+)=$)
+(.*?[#](\w{1,3})?
+(?:[\[\\]]?\d{4}[\-]?\d?\d{3}(?:-\d{4}\s?)*\(?[\|\()]?[\|\(]?\*\)?$[\*]))|$
+^(\+\d+(,\)*|(\d+) \b)$
+^ (\S+) .*? \ \S+) \"(\d+) (\d+) \}(\d+) (\d\d.*) (\d+) (\d*) (\d{4})-
 ```
 
 ```text
 --- Training Pure Connectionist Recurrent-MLP LM on Regular Expressions ---
-Iter    0 | Train Loss: 4.9385
-Iter  500 | Train Loss: 1.5342
-Iter 1000 | Train Loss: 1.3358
-Iter 1500 | Train Loss: 1.1157
-Iter 2000 | Train Loss: 1.0944
-Iter 2500 | Train Loss: 0.9024
+Iter    0 | Train Loss: 4.8778
+Iter  500 | Train Loss: 1.4912
+Iter 1000 | Train Loss: 1.2910
+Iter 1500 | Train Loss: 1.2077
+Iter 2000 | Train Loss: 1.0586
+Iter 2500 | Train Loss: 0.8734
 
 --- Generating Regular Expressions (Recurrent-MLP) ---
 
-([0-9A-F]{2}:){5}[0-9]$
-^([[0-9]|[a-zA-Z0-9_.-])+\.([a-zA-Z0-9]+)
-^([A-Z][a-z]+)([-]?[. ]+)[\s]*\-?\d{4})(\s)
-(^\d+)$
-^(\d+)('\"|'([a-zA-Z0-9])(?=[^A-Za-z0-9.-]+\.\.[a-zA-Z0-9 +]*([^@]+)
-[^\x00-\x7F|\-<>&]*<
-@((?:[^;]+)
-^([a-zA-Z0-9._%+-]$
-^[-\S]+
-[[
+(^9+\.\w*)
+(\w\w)
+(\&)(<)[\s*\w+([^@]|^|[^<>]*)<\/\1>
+<([^\/> ]+)\.)?(\/\/[A-Z][a-z]+)(\.[a-zA-Z]{1,}\s)*([A-Z].*)\$?([0-9]+[^:]*>)
+"[0-9]+)
+([0-9A-F]{8}-[0-9a-f]{12}$
+^[A-Z]{2,3}$)
+(^([A-Z])
+([^a-z])+\@([-+]?[0-9]{3,4})$
+^(([0-9]{4}[\/]+[0-9]*)(([A-
 ```
 
 ```text
 --- Training Pure Connectionist Sparse Recurrent-MLP on Regular Expressions ---
-Iter    0 | Train Loss: 4.5600
-Iter  500 | Train Loss: 2.1382
-Iter 1000 | Train Loss: 2.0610
-Iter 1500 | Train Loss: 2.0513
-Iter 2000 | Train Loss: 2.0058
-Iter 2500 | Train Loss: 1.8328
+Iter    0 | Train Loss: 4.5547
+Iter  500 | Train Loss: 2.1371
+Iter 1000 | Train Loss: 1.9768
+Iter 1500 | Train Loss: 1.9617
+Iter 2000 | Train Loss: 2.0611
+Iter 2500 | Train Loss: 1.9522
 
 --- Generating Regular Expressions (Sparse Recurrent-MLP) ---
 
-^^( ?\s+)(?:|[00)[2]0-)\\\]?)?)
-^\s+)(\s\) (\d{3},\))
-[\s?(\d{6,24})\.)|^(?= *>(\.\\$
-\d{3}[\d]*)))(?=^(?::+"([0-9]{2}$))[^:-]{2}
-^[+-a-zA-Za-zA-FA-F]{5}[0-1E271})(?:[\."]+(\d{5}$)((\d{1,6}[\-]+)(.*\d@[a-z-]?\.)\+\w+$)
-([0-9]{5}([0-9][0-9]{7,}))
-(-*?
+^\w+)[0-9_]*[A-Z0-9A-Z\d*)*(?=.*.(\W{1,})$
+^[^>]{4})\.*[[a-z0-9]+)(?=.*?)(?(-\.\)\\s+{2}$
+^\.__+[a-z]*)(?:(\=\-|\-.]\s])\?
+^.*[a-zA-Za-z]\s[0[1])(?= \s]*)([\-]+\*)
+^([a]+
+.*,$
+^([[\w\d\s+>|\s\(?[0-9][0-9_-][a-z]*\/(0+))*)+?)\w+\s\w*-?]*)
+(\w+)\]:\7\d
 ```
 
 ```text
 --- Training Pure Connectionist Vanilla TDL on Regular Expressions ---
-Iter    0 | Train Loss: 4.5882
-Iter  500 | Train Loss: 1.6171
-Iter 1000 | Train Loss: 1.4219
-Iter 1500 | Train Loss: 1.5187
-Iter 2000 | Train Loss: 1.3616
-Iter 2500 | Train Loss: 1.4512
+Iter    0 | Train Loss: 4.4966
+Iter  500 | Train Loss: 1.5292
+Iter 1000 | Train Loss: 1.5671
+Iter 1500 | Train Loss: 1.4792
+Iter 2000 | Train Loss: 1.4054
+Iter 2500 | Train Loss: 1.3627
 
 --- Generating Regular Expressions (Vanilla TDL) ---
 
-\s[a-z0-9._%+-]
-\"|[^;]+)'
-"([^\w]+$)
-(\d+\.?))?(\d\d\d$|_))+)$
-^[1-9]{1,3}\s[a-zA-Za-zA-Z0-9])\w+?_.*-){1,4}:){7})$
-^[A-Z_]+)[\-|"][\s.-]?\s+(\.\d{3})(:\s|$)
-[\w\s]+\/|([A-Z0-9-]+@[\w\d\d\d)(?=.*[A-Z]+
-[[:alnum:]]
-[^\w\_\.]?)+\.\d{10,9}
-(\d{3}\.[0-1
+^[+-]?\d{2})\b
+\b[0-1])[a-zA-Z0-9]|2[0-9]))?
+^(?=[1-9])\/(\w+\s++\}$
+^(?:\\\.*\d)[a-zA-Z])([\w\/->\.\d+)\.([a-zA-Z])(\d*)$
+..+?)\+?\s?\(?([$](?:.*[a-zA-Z]{2})?$
+.+[!@#$@#$%^&+=!*(?=.*\\)))$
+^(\d{2}[0-9])0-9]\.[[:alnum:]]{4})-[a-z0-9])(?!)|(\s\S]*?\s)
 ```
 
 ```text
 --- Training Pure Connectionist Vanilla TDL (1990s SGD) on Regular Expressions ---
-Iter    0 | Train Loss: 4.5396
-Iter  500 | Train Loss: 1.8605
-Iter 1000 | Train Loss: 1.7324
-Iter 1500 | Train Loss: 1.6887
-Iter 2000 | Train Loss: 1.5480
-Iter 2500 | Train Loss: 1.6706
+Iter    0 | Train Loss: 4.5374
+Iter  500 | Train Loss: 1.8499
+Iter 1000 | Train Loss: 1.7228
+Iter 1500 | Train Loss: 1.6755
+Iter 2000 | Train Loss: 1.5758
+Iter 2500 | Train Loss: 1.6021
 
 --- Generating Regular Expressions (Vanilla TDL - 1990s SGD) ---
 
-^([A-Z0-5][a-z0-9]+).{0,12})?(\d)(.+)\)\/[0-9]$
-^(\:\d)\s+)((?:\.[0\b
-^( +?\D*(\d+\-([a-zA-Z](?:[t-]?\x:\d*)$
-^.*<,'/[0-9]{1,4}
-([A-Za-z]+)$)
-(?<=\d{9$:]+)
-(\([a-zA-Za-z_]+)\)
-\d*)?$
-^(?=.*|\'|\/\%\s\d+(.*?)\/\ *)
-\+[A-Z]
-[:-])$
-^([\d{5}(-([a-zA-Z]+(
+([0-9]+:\d{2,4}[\.\w+\w+|\w)
+(^[0-9][\w\d]{2}\*?@#\-.\d{1,3}|[a-zA-Za-z])(?=.*[-][#]{2}\[\d_-]*)$|[0-9])?[^a-zA-Z]|(?=.*[A-Z]
+[0-9]){2}:[0-9_i]{2}/[0-9]|[ ']?[0-9]{3})\s*(\w+)?$
+^#(?:[a-z0-9]+)( ?(\w+
+^(?!\d+) 
+(?=(?:[\d\d\A-Z])[(\s?\*
+\/(\w+[-]*\])&
 ```
 
 ```text
@@ -848,22 +861,42 @@ Iter 2500 | Train Loss: 1.6706
 Model built with 27457 unique states.
 
 --- Generating Text (Claude Shannon's N-Gram Approximation) ---
-[\".*?\"|[^\s)]+)
-([\D\.\s\-]{1,} ){1,}
-[^&\w]|_
-[^,\s]+(<)
-(<\/.+>|<.+>)?) [a-zA-Z])(?=\s*\w+\s\w+\s\w+\.[\w]{0,1}
-(\d{3}) \"(.*?)[,!?\(\)\(\&\%\$\#\@\!]).{6,32})$
-^(?=.*\d)(?!\1|"").|"".)*\1
-(["'])((?:[^|]*)\|([^|]*)
-^\s*((?:[a-z0-9_.-]*
-[[:alpha:]_]\w*[0-9][0-9]\)[A-Za-z]{2})
-(["'])(.*?)([^\s]+)\((.*)\(([0-9]{1,3}$)\w){2,3})+$
-^(?=.*[A-Z])(?=.*[A-Za-z]{0,4})?
-[\w\-]+\.[0-9]+:[0-9]{2,4}(\.[a-zA-Z]
-[^a-zA-Z0-9]*)([a-z])([a-zA-Z]|[0-2])\.(0?[1-9]\d{2,4})+$
-^(?=.*[A-Z]{2}\d)?$
-^\\w+([-+.']\w+)*\.
+=\@\[\]\-\(\)\- 0-9]{4}?[0-9]*)([.!?]?['"]?(?=\/)
+\d+-\d+.\d+)\s*=\s*([a-zA-Z_\x7f-\xff]*
+[a-zA-Z]+)?)|(\.\d)?\d*$
+^-?(0|[1-9]*$
+^[A-Z]+\b|^[a-z ]*)
+ (\t)
+ *"(\w+)\"?\s+\"?([+-]?[0-9]{8}
+[A-Z] ?[0-9]?[0-9]{8}-[a-fA-F]{12}
+[0-9.]*):)?([A-Za-z0-9_]*
+[a-z0-9]+)(\d+)\s+\1\b)+
+(\d{3}\1\d{4})[\-]([\d]+)
+([0-9]{4}-[0-9a-fA-F]{6})+(-)+([A-Z]+)*\.)+[a-zA-Z0-9]{1})\.?([0-9$|\[\]\^"]\S|(\'\S*\'))
+([+-]?((0\.\d+)?)(\+|-)(?!\d))
+(?:(?!\1))+$
+^(\w+)$
+(.*)(,?)$
+(\d*\.\d*\s*[A-Fa-f0-9]{8})-([0-9]{0,2})?$
+^\/([\
+Initializing Z3 SMT Solver for Boolean Superoptimization...
+Target Function (Raw PyTorch Logic):
+And(Or(And(C1_0, Q_0), And(Not(C1_0), Not(Q_0))),
+    And(Or(And(C1_1, Q_1), And(Not(C1_1), Not(Q_1))), E))
+
+Starting search for the absolute minimum gate-count circuit...
+Testing circuit size N = 1 gates...
+Testing circuit size N = 2 gates...
+Testing circuit size N = 3 gates...
+Testing circuit size N = 4 gates...
+
+SUCCESS! Found equivalent circuit with exactly 4 gates!
+gate_5 = XOR(Q_0, C1_0)
+gate_6 = XOR(C1_1, Q_1)
+gate_7 = NOT A AND B(E, gate_5)
+gate_8 = A AND NOT B(gate_6, gate_7)
+
+This mathematical proof confirms the absolute minimum hardware gate-count!
 ```
 <!-- REGEX LOGS END -->
 
@@ -886,30 +919,6 @@ graph TD
     OR_0["OR Reduction"]:::op
     INV_0["Invert & Expand Mask"]:::op
     AND_0["Bitwise AND MUX"]:::op
-    C_1["Context Token (1)"]:::token
-    C_next_1["Context Token (2)"]:::token
-    XOR_1["XOR Gate (C_1 ^ Q)"]:::op
-    OR_1["OR Reduction"]:::op
-    INV_1["Invert & Expand Mask"]:::op
-    AND_1["Bitwise AND MUX"]:::op
-    C_2["Context Token (2)"]:::token
-    C_next_2["Context Token (3)"]:::token
-    XOR_2["XOR Gate (C_2 ^ Q)"]:::op
-    OR_2["OR Reduction"]:::op
-    INV_2["Invert & Expand Mask"]:::op
-    AND_2["Bitwise AND MUX"]:::op
-    C_3["Context Token (3)"]:::token
-    C_next_3["Context Token (4)"]:::token
-    XOR_3["XOR Gate (C_3 ^ Q)"]:::op
-    OR_3["OR Reduction"]:::op
-    INV_3["Invert & Expand Mask"]:::op
-    AND_3["Bitwise AND MUX"]:::op
-    C_4["Context Token (4)"]:::token
-    C_next_4["Context Token (5)"]:::token
-    XOR_4["XOR Gate (C_4 ^ Q)"]:::op
-    OR_4["OR Reduction"]:::op
-    INV_4["Invert & Expand Mask"]:::op
-    AND_4["Bitwise AND MUX"]:::op
     
     Q --> XOR_0
     C_0 --> XOR_0
@@ -918,34 +927,6 @@ graph TD
     INV_0 --> AND_0
     C_next_0 --> AND_0
     AND_0 --> ACC
-    Q --> XOR_1
-    C_1 --> XOR_1
-    XOR_1 --> OR_1
-    OR_1 --> INV_1
-    INV_1 --> AND_1
-    C_next_1 --> AND_1
-    AND_1 --> ACC
-    Q --> XOR_2
-    C_2 --> XOR_2
-    XOR_2 --> OR_2
-    OR_2 --> INV_2
-    INV_2 --> AND_2
-    C_next_2 --> AND_2
-    AND_2 --> ACC
-    Q --> XOR_3
-    C_3 --> XOR_3
-    XOR_3 --> OR_3
-    OR_3 --> INV_3
-    INV_3 --> AND_3
-    C_next_3 --> AND_3
-    AND_3 --> ACC
-    Q --> XOR_4
-    C_4 --> XOR_4
-    XOR_4 --> OR_4
-    OR_4 --> INV_4
-    INV_4 --> AND_4
-    C_next_4 --> AND_4
-    AND_4 --> ACC
 ```
 
 
@@ -954,9 +935,9 @@ graph TD
 # Fully minimized synthesized Boolean hardware circuit
 def predict_next_token_optimized(context, query):
     y = 0
-    for j in range(5):
-        # 1. Word-level XNOR (diff is 0 only if tokens match exactly)
-        diff = context[j] ^ query
+    for j in [0]:
+        # 1. Word-level Z3 AST logic
+        diff = ~(~(query ^ context[j])) # Invert since reduction needs 0 for match
         # 2. Bitwise reduction across 4 bits
         any_diff = ((diff >> 0) | (diff >> 1) | (diff >> 2) | (diff >> 3)) & 1
         # 3. Two's complement mask expansion (0 -> all 1s, 1 -> all 0s)
@@ -973,7 +954,7 @@ def predict_next_token_optimized(context, query):
   (reduce bit-or 0
     (map
       (fn [j]
-        (let [diff (bit-xor (nth context j) query)
+        (let [diff (bit-not (bit-not (bit-xor query (nth context j))))
               any-diff (bit-and
                          (bit-or (bit-shift-right diff 0)
                                  (bit-shift-right diff 1)
@@ -982,19 +963,19 @@ def predict_next_token_optimized(context, query):
                          1)
               mask (- (bit-xor any-diff 1))]
           (bit-and mask (nth context (inc j)))))
-      (range 5))))
+      [0])))
 ```
 
 **Mathematica Implementation (`optimized_true_gpt.wls`):**
 ```mathematica
 (* Beautiful pattern-matching Wolfram Language evaluation *)
-PredictNextToken[context_, query_] := Total[ReplacePart[RotateRight[Boole[Map[# == query &, context]]], 1 -> 0] * context]
+PredictNextToken[context_, query_] := Total[ReplacePart[RotateRight[Boole[Map[BitNot[BitXor[#, query]] == -1 &, context]], 1], 1 -> 0] * context]
 ```
 
 **APL Implementation (`optimized_true_gpt.apl`):**
 ```apl
 ⍝ The absolute pinnacle of array-oriented notation
-predict_next_token ← { +/ (0 , ¯1 ↓ ⍺ = ⍵) × ⍺ }
+predict_next_token ← { +/ (0 , -1 ↓ (⍺=⍵)) × ⍺ }
 ```
 
 **Verilog RTL Implementation (`optimized_true_gpt.v`):**
@@ -1013,11 +994,7 @@ module predict_next_token_optimized #(
     output wire [NUM_BITS-1:0] y
 );
     // Fully unrolled combinational data-path
-    assign y = ((context_0 == query) ? context_1 : {NUM_BITS{1'b0}}) | 
-               ((context_1 == query) ? context_2 : {NUM_BITS{1'b0}}) | 
-               ((context_2 == query) ? context_3 : {NUM_BITS{1'b0}}) | 
-               ((context_3 == query) ? context_4 : {NUM_BITS{1'b0}}) | 
-               ((context_4 == query) ? context_5 : {NUM_BITS{1'b0}});
+    assign y = ((context_0 == query) ? context_1 : {NUM_BITS{1'b0}});
 endmodule
 ```
 
