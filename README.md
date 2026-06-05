@@ -197,38 +197,38 @@ Results:
 <!-- PERFORMANCE LOGS START -->
 ```text
 --- Training 3-Layer MLP ---
-MLP - Epoch  40 | Train Loss: 0.6515 | Train Acc: 79.3% | Test Acc: 73.5%
+MLP - Epoch  40 | Train Loss: 1.5812 | Train Acc: 38.1% | Test Acc: 27.9%
 
 --- Training MicroGPT (2-Layer Attention-Only, No LN, No Bias) ---
-GPT-PureAttn - Epoch  20 | Train Loss: 0.0650 | Train Acc: 98.0% | Test Acc: 97.0%
+GPT-PureAttn - Epoch  20 | Train Loss: 0.0003 | Train Acc: 100.0% | Test Acc: 100.0%
 
 --- Training SymPy-Structured MLP Network ---
-SymPy-Structured MLP | Test Acc: 98.9%
+SymPy-Structured MLP | Test Acc: 100.0%
 
 --- Testing Shannon N-Gram Markov Baseline ---
-Shannon Markov | Test Acc: 7.0%
+Shannon Markov | Test Acc: 7.1%
 
 --- Testing Boolean Logic Circuit Equivalency ---
-Boolean Circuit | Test Acc: 97.4%
+Boolean Circuit | Test Acc: 100.0%
 
 --- Testing SymPy Functional Abstraction Circuit ---
-SymPy Circuit | Test Acc: 74.1%
+SymPy Circuit | Test Acc: 13.5%
 
 
 --- Testing LLVM-Optimized Integer Hardware Circuit ---
-LLVM Circuit | Test Acc: 97.4%
+LLVM Circuit | Test Acc: 100.0%
 
 --- Testing Clojure Integer Hardware Circuit ---
-Clojure Circuit | Test Acc: 97.4%
+Clojure Circuit | Test Acc: 100.0%
 
 --- Testing Mathematica Hardware Circuit ---
 Mathematica Circuit | Test Acc: ERROR
 
 --- Testing APL Array Language Circuit ---
-APL Circuit | Test Acc: 66.9%
+APL Circuit | Test Acc: 1.0%
 
 --- Testing Verilog RTL Hardware Circuit ---
-Verilog Circuit | Test Acc: 97.4%
+Verilog Circuit | Test Acc: 100.0%
 ```
 <!-- PERFORMANCE LOGS END -->
 
@@ -613,7 +613,63 @@ graph TD
     R2 -->|W_ho| O2
 ```
 
-<!-- LITERAL TRAINED BRAIN START --><!-- LITERAL TRAINED BRAIN END -->
+<!-- LITERAL TRAINED BRAIN START -->
+#### The Literal Trained Brain
+
+```mermaid
+graph TD
+    classDef neuron fill:#f9f2e7,stroke:#d4a373,stroke-width:2px,color:#000;
+    N0(("N_0")):::neuron
+    N1(("N_1")):::neuron
+    N2(("N_2")):::neuron
+    N3(("N_3")):::neuron
+    N4(("N_4")):::neuron
+    N5(("N_5")):::neuron
+    N6(("N_6")):::neuron
+    N7(("N_7")):::neuron
+    N8(("N_8")):::neuron
+    N9(("N_9")):::neuron
+    N10(("N_10")):::neuron
+    N11(("N_11")):::neuron
+    N12(("N_12")):::neuron
+    N13(("N_13")):::neuron
+    N14(("N_14")):::neuron
+    N15(("N_15")):::neuron
+    N15 -->|"0.13"| N0
+    N12 -->|"0.35"| N1
+    N1 -->|"-0.41"| N2
+    N6 -->|"0.73"| N2
+    N7 -->|"0.03"| N2
+    N8 -->|"0.68"| N2
+    N5 -->|"0.48"| N3
+    N6 -->|"0.24"| N3
+    N7 -->|"-0.27"| N3
+    N0 -->|"0.42"| N5
+    N1 -->|"0.56"| N5
+    N4 -->|"0.33"| N5
+    N6 -->|"0.42"| N5
+    N8 -->|"0.21"| N5
+    N4 -->|"0.30"| N6
+    N1 -->|"0.53"| N7
+    N3 -->|"-0.49"| N7
+    N5 -->|"0.08"| N7
+    N8 -->|"0.22"| N7
+    N15 -->|"0.44"| N7
+    N1 -->|"0.00"| N8
+    N2 -->|"0.19"| N8
+    N7 -->|"0.16"| N8
+    N6 -->|"-0.28"| N9
+    N11 -->|"0.48"| N9
+    N14 -->|"-0.03"| N10
+    N2 -->|"-0.03"| N11
+    N15 -->|"0.65"| N11
+    N0 -->|"-0.16"| N12
+    N2 -->|"-0.05"| N13
+    N6 -->|"0.16"| N13
+    N7 -->|"-0.41"| N14
+    N13 -->|"0.44"| N15
+```
+<!-- LITERAL TRAINED BRAIN END -->
 
 #### Bonus: The Vanilla Tapped Delay Line (TDL) Network
 
@@ -658,26 +714,149 @@ Training these architectures on the `regex_corpus` dataset successfully converge
 <!-- REGEX LOGS START -->
 ```text
 --- Training Pure Connectionist MLP-Transformer on Regular Expressions ---
-Iter    0 | Train Loss: 4.3350
-Iter  500 | Train Loss: 2.2888
-Iter 1000 | Train Loss: 2.0538
-Iter 1500 | Train Loss: 1.8409
-Iter 2000 | Train Loss: 1.7221
-Iter 2500 | Train Loss: 1.6893
+Iter    0 | Train Loss: 4.8532
+Iter  500 | Train Loss: 2.0293
+Iter 1000 | Train Loss: 1.7398
+Iter 1500 | Train Loss: 1.6089
+Iter 2000 | Train Loss: 1.5054
+Iter 2500 | Train Loss: 1.5733
 
---- Generating Regular Expressions ---
-like of in dear Mausice bourral:
-I if for, for my longlow then and are of wate
-Tham: what I'll now: yo but lijess
-And to wills. feir no be thou we to word!
-That that spate it thy neighting womont man,
-Look you sweears an hust pract not way, the
-mast in the noble of not of they seep of this,
-as percud our suse so not all parsht goods,
-Thy'funt one, so drame of agteachons,
-Her alovip me lang the gravants bany this the
-But this I vimilt, must I crered.
-My Greased vickive upp'dise at unto this, all
+--- Generating Regular Expressions (MLP-Transformer) ---
+
+^(([^0-2\(?)(?5?[0-10|5]|(0|2[12]|[1-9]|2[0142]|9[01]|0[0-2]|3[63]\d|5[0-1-3]|[01])){6}
+(([0-2][0-3]|1[0-1-9]|0\d$
+0-?]|(0[0-9]\d{1[0-1][0-9]{0,2}|3}\-\-)$
+^((\w+[\d]+)?)[(()+([\d|)|)]?\s|([\s\+|\|\+)]+)?(^)\)
+((\(.*?:\d*)\s*
+(\w+\.)|\?
+\W.*1\b(?=\S+
+```
+
+```text
+--- Training Pure Connectionist Recurrent-MLP LM on Regular Expressions ---
+Iter    0 | Train Loss: 4.6013
+Iter  500 | Train Loss: 1.6468
+Iter 1000 | Train Loss: 1.5200
+Iter 1500 | Train Loss: 1.4349
+Iter 2000 | Train Loss: 1.3214
+Iter 2500 | Train Loss: 1.3425
+
+--- Generating Regular Expressions (Recurrent-MLP) ---
+
+[\u00f0](?:[\.][0-9]{0,5}\b
+([0-9]{4})-([A-Z0-9]{4}-[6-9]|[78289]{4}$)-[0-9]+(\.[0-9-\:]?[\/\.]+[0-9])+$
+^[A-Z]{4,3}(([43][01]){1}[0-9]{1}|[8-9]\d\d{3}
+-[0-9]{2}$
+^[A-Za-z0-9.)]+
+[@]([A-Z]{1,8})\s*([0-9]+)(\.\w))$
+^([a-zA-Z0-9_ \-\/]+[^8]0[2][:d]|$)|
+```
+
+```text
+--- Training Pure Connectionist Sparse Recurrent-MLP on Regular Expressions ---
+Iter    0 | Train Loss: 4.5259
+Iter  500 | Train Loss: 2.2214
+Iter 1000 | Train Loss: 2.1095
+Iter 1500 | Train Loss: 1.9513
+Iter 2000 | Train Loss: 1.9841
+Iter 2500 | Train Loss: 1.9349
+
+--- Generating Regular Expressions (Sparse Recurrent-MLP) ---
+
+[{2}[0,5})\s]+[ ]))\d{2\.]*;_-]+(\d\W|-(]*?(\d{2}[\s\-\|\s+[\.[A-Z]*\w{5,]{1,3})
+([0-9]*\ )\s+\d{3}?\s*$)^(?![A-Z]{6}))|(([\w]+-.+(\S\d{4,})(')+)|(,(_)(\ ]+\(\d{3}))$"
+(-[0-2,70}
+^[0-9][0-7]{0,3})[0-5]{4}<=(=\}
+([0-9a-z\-]+[^@1})
+^[0-9]+$
+^(?:(\d[\d?
+```
+
+```text
+--- Training Pure Connectionist Vanilla TDL on Regular Expressions ---
+Iter    0 | Train Loss: 4.5698
+Iter  500 | Train Loss: 1.5794
+Iter 1000 | Train Loss: 1.5134
+Iter 1500 | Train Loss: 1.4293
+Iter 2000 | Train Loss: 1.4009
+Iter 2500 | Train Loss: 1.3290
+
+--- Generating Regular Expressions (Vanilla TDL) ---
+
+(\d{4})
+^([^,]*)\-\+\d*[ \t]|$)
+(^\+]\d{2}[A-Za-z1-9]{4}$
+[(])\?)?[1-7]|7[0-9]+
+[\^].*\d{3})?
+^([^|]*)
+(^[A-Za-z]\w+)*$
+^(?=[\w]+[@]([a-zA-Z0-9_]+@[a-zA-Z])(?:[a-zA-Z])+([0-9]+$
+^(?=\S*?-?\d{2})
+(\/([2-9\.]*)
+(?!(^\(=.*\/)(\w+)([a-zA-Z]).*?)([\s]+|[1
+```
+
+```text
+--- Training Pure Connectionist Vanilla TDL (1990s SGD) on Regular Expressions ---
+Iter    0 | Train Loss: 4.5242
+Iter  500 | Train Loss: 1.9026
+Iter 1000 | Train Loss: 1.7771
+Iter 1500 | Train Loss: 1.6689
+Iter 2000 | Train Loss: 1.6390
+Iter 2500 | Train Loss: 1.7097
+
+--- Generating Regular Expressions (Vanilla TDL - 1990s SGD) ---
+
+(^\s+(\d[A-Z]+\b)(?=.*[A-Z0-9])(?! -[2]5\/\/>[\s-]{4}[{1,4}|[^C]+([[a-z0-9]{9}(?:\+\d+)
+(\d{1,2} $
+^(\d+$)((\t)\p*)|(\d{1,3}(?:|(?:1]\"\[\^(.+\w+\W\.(\d+(?=.*\".*)\)
+(%|\.[A-Z0-9]+)\/(?=\b)\b
+\b([A-Z]((~:\/\1>([A-Za-z]*\%)([1,]+)\1
+[\w]*\s\,\d{4})$
+^
+```
+
+```text
+--- Testing Shannon's 1948 Markovian Text Generator ---
+--- Training 5-Order Markov Model on 73249 characters ---
+Model built with 27457 unique states.
+
+--- Generating Text (Claude Shannon's N-Gram Approximation) ---
+")(\w*)"?,){2}
+([0-9]\/[0-3]{1})(([,][1-4])*)(([1-4])*)$
+^([a-zA-Z-0-9]*[- ])*
+^([^a-zA-Z][0-9]+\d*$
+^[0-9\._]+\.[a-z0-9_]+)*
+[a-z]).*\1.*$
+^((\d{10}-\d{2}[A-z]+)*)?$
+^([\+7]{2}|[1-9]{2}\d)?$
+^(?=.*\d)[A-Za-z0-9_-]+)*(\\.\\D{2,3}.){1,2}[0-9]*[- ])*
+^([^|]*)(\{\{ *\w+ *\}\}[^{]*)*$
+^\s*\$\d*\. )|$))++)$
+^((([^:]+:)*[^:]+))|(^[1-2][0-3]|[10][0-9]*)[^>]*>(\s|[\!\.\?]|$)
+(\D+)(\d+)(?:\/)?\-(\d+)$
+^(?:\"([^"]+)\"|[^\s)]+)
+(\d\d)\d\d-)(.*)(<|>)
+(\:(\w|\+|\(|)
+^(\d{1,15}(,)\s[A-Z])(?=.+[A-Z])|([-]|[_]|
+Initializing Z3 SMT Solver for Boolean Superoptimization...
+Target Function (Raw PyTorch Logic):
+And(Or(And(C1_0, Q_0), And(Not(C1_0), Not(Q_0))),
+    And(Or(And(C1_1, Q_1), And(Not(C1_1), Not(Q_1))), E))
+
+Starting search for the absolute minimum gate-count circuit...
+Testing circuit size N = 1 gates...
+Testing circuit size N = 2 gates...
+Testing circuit size N = 3 gates...
+Testing circuit size N = 4 gates...
+
+SUCCESS! Found equivalent circuit with exactly 4 gates!
+gate_5 = XOR(Q_0, C1_0)
+gate_6 = XOR(C1_1, Q_1)
+gate_7 = NOT A AND B(E, gate_5)
+gate_8 = A AND NOT B(gate_6, gate_7)
+
+This mathematical proof confirms the absolute minimum hardware gate-count!
 ```
 <!-- REGEX LOGS END -->
 
