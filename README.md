@@ -319,7 +319,7 @@ def predict_next_token(context, query):
 
 ### ⚡ SymPy Functional Abstraction (Map-Reduce)
 
-If we pass that massive unrolled combinational block into the **SymPy** open-source solver, it applies Quine-McCluskey minimization and perfectly reconstructs the functional abstraction. It derives the fundamental `XNOR` equivalence logic from the weights, mapping it out into an ultra-clean executable Map-Reduce operation:
+If we pass that massive unrolled combinational block into the **SymPy** open-source solver, it applies Quine-McCluskey minimization and perfectly reconstructs the functional abstraction. It derives the fundamental underlying boolean equivalence logic from the weights, mapping it out into an ultra-clean executable Map-Reduce operation:
 
 **SymPy Functional Abstraction (`optimized_true_gpt_sympy.py`):**
 ```python
@@ -350,9 +350,9 @@ def predict_next_token_sympy(context, query):
 
 Because the SymPy equation takes the topological form of a Map-Reduce loop, we can construct a completely standard feedforward PyTorch network structured in this exact arrangement (where random continuous `nn.Linear` MLPs replace the discrete boolean logic gates). 
 
-As shown in `scripts/neurosymbolic_train.py`, if we train this Map-Reduce structure from scratch with standard backpropagation, it instantly learns the XNOR/AND parameters and achieves **100% test accuracy**. 
+As shown in `scripts/neurosymbolic_train.py`, if we train this Map-Reduce structure from scratch with standard backpropagation, it instantly learns the boolean logic parameters and achieves **100% test accuracy**. 
 
-This perfectly demonstrates that standard MLPs *are* fully capable of learning complex boolean logic operators like `XNOR`, but they desperately need a structural inductive bias (like the Attention mechanism) to handle the temporal permutation of sequences.
+This perfectly demonstrates that standard MLPs *are* fully capable of learning complex boolean logic operators, but they desperately need a structural inductive bias (like the Attention mechanism) to handle the temporal permutation of sequences.
 
 ```mermaid
 graph TD
@@ -370,7 +370,7 @@ graph TD
     Q["Query Token"]:::input
 
     %% Match MLPs (Weights Shared)
-    subgraph Match["Shared 3-Layer Match MLP (Learned XNOR)"]
+    subgraph Match["Shared 1-Layer Match MLP (Learned XNOR)"]
         M0["Match MLP"]:::hidden
         M1["Match MLP"]:::hidden
         M2["Match MLP"]:::hidden
@@ -567,55 +567,11 @@ graph TD
     R1_0 --> M1_0
     R1_1 --> M1_1
     R1_2 --> M1_2
-
-    %% Layer 2
-    subgraph L2["Layer 2: Recurrent + FeedForward"]
-        R2_0["RNN L2 (t-2)"]:::hidden
-        R2_1["RNN L2 (t-1)"]:::hidden
-        R2_2["RNN L2 (t)"]:::hidden
-        
-        M2_0["MLP L2 Block"]:::hidden
-        M2_1["MLP L2 Block"]:::hidden
-        M2_2["MLP L2 Block"]:::hidden
-    end
-
-    M1_0 --> R2_0
-    M1_1 --> R2_1
-    M1_2 --> R2_2
-
-    R2_0 -->|W_hh| R2_1
-    R2_1 -->|W_hh| R2_2
-
-    R2_0 --> M2_0
-    R2_1 --> M2_1
-    R2_2 --> M2_2
-
-    %% Layer 3
-    subgraph L3["Layer 3: Recurrent + FeedForward"]
-        R3_0["RNN L3 (t-2)"]:::hidden
-        R3_1["RNN L3 (t-1)"]:::hidden
-        R3_2["RNN L3 (t)"]:::hidden
-        
-        M3_0["MLP L3 Block"]:::hidden
-        M3_1["MLP L3 Block"]:::hidden
-        M3_2["MLP L3 Block"]:::hidden
-    end
-
-    M2_0 --> R3_0
-    M2_1 --> R3_1
-    M2_2 --> R3_2
-
-    R3_0 -->|W_hh| R3_1
-    R3_1 -->|W_hh| R3_2
-
-    R3_0 --> M3_0
-    R3_1 --> M3_1
-    R3_2 --> M3_2
 ```
 
 #### Final Form: The Sparse Single-Layer Recurrent-MLP (Liquid State Machine)
 
-Taking connectionist compression to its absolute physical limit, we tasked a swarm of PDP experts to coalesce the deep three-layer temporal architecture into a **single hidden layer** (`n_layer=1`), but with an extreme constraint: the recurrent connectivity matrix ($W_{hh}$) must be **80% sparse**. 
+Taking connectionist compression to its absolute physical limit, we tasked a swarm of PDP experts to coalesce the deep three-layer temporal architecture into a **single hidden layer** (`n_layer=1`), but with an extreme constraint: the recurrent connectivity matrix ($W_{{hh}}$) must be **80% sparse**. 
 
 By applying this severe synaptic dropout and maintaining it dynamically during backpropagation, the single layer functionally begins to act like an Echo State Network / Liquid State Machine. The swarm discovered that even with a brutally sparse and singular temporal matrix, the recurrent loop successfully masters autoregressive causality with only a fraction of the structural depth!
 
@@ -657,64 +613,7 @@ graph TD
     R2 -->|W_ho| O2
 ```
 
-<!-- LITERAL TRAINED BRAIN START -->
-#### The Literal Trained Brain
-
-```mermaid
-graph TD
-    classDef neuron fill:#f9f2e7,stroke:#d4a373,stroke-width:2px,color:#000;
-    N0(("N_0")):::neuron
-    N1(("N_1")):::neuron
-    N2(("N_2")):::neuron
-    N3(("N_3")):::neuron
-    N4(("N_4")):::neuron
-    N5(("N_5")):::neuron
-    N6(("N_6")):::neuron
-    N7(("N_7")):::neuron
-    N8(("N_8")):::neuron
-    N9(("N_9")):::neuron
-    N10(("N_10")):::neuron
-    N11(("N_11")):::neuron
-    N12(("N_12")):::neuron
-    N13(("N_13")):::neuron
-    N14(("N_14")):::neuron
-    N15(("N_15")):::neuron
-    N0 -->|"0.65"| N0
-    N5 -->|"-0.27"| N0
-    N6 -->|"0.34"| N0
-    N10 -->|"-0.38"| N0
-    N6 -->|"0.58"| N1
-    N13 -->|"0.26"| N1
-    N9 -->|"0.26"| N2
-    N12 -->|"0.56"| N3
-    N14 -->|"-0.07"| N3
-    N15 -->|"-0.02"| N3
-    N6 -->|"0.42"| N6
-    N13 -->|"0.32"| N6
-    N6 -->|"0.66"| N7
-    N13 -->|"-0.25"| N7
-    N4 -->|"-0.13"| N8
-    N12 -->|"0.21"| N8
-    N14 -->|"0.51"| N8
-    N1 -->|"0.25"| N9
-    N8 -->|"-0.27"| N9
-    N2 -->|"-0.15"| N10
-    N4 -->|"0.53"| N10
-    N6 -->|"0.39"| N10
-    N12 -->|"-0.34"| N10
-    N15 -->|"0.68"| N10
-    N5 -->|"0.61"| N12
-    N9 -->|"-0.14"| N12
-    N3 -->|"0.53"| N13
-    N5 -->|"0.21"| N13
-    N12 -->|"-0.28"| N13
-    N5 -->|"0.45"| N14
-    N6 -->|"-0.64"| N14
-    N8 -->|"0.62"| N14
-    N14 -->|"0.59"| N14
-    N2 -->|"0.18"| N15
-```
-<!-- LITERAL TRAINED BRAIN END -->
+<!-- LITERAL TRAINED BRAIN START --><!-- LITERAL TRAINED BRAIN END -->
 
 #### Bonus: The Vanilla Tapped Delay Line (TDL) Network
 
@@ -759,149 +658,26 @@ Training these architectures on the `regex_corpus` dataset successfully converge
 <!-- REGEX LOGS START -->
 ```text
 --- Training Pure Connectionist MLP-Transformer on Regular Expressions ---
-Iter    0 | Train Loss: 4.7803
-Iter  500 | Train Loss: 1.9924
-Iter 1000 | Train Loss: 1.7701
-Iter 1500 | Train Loss: 1.6097
-Iter 2000 | Train Loss: 1.5508
-Iter 2500 | Train Loss: 1.4679
+Iter    0 | Train Loss: 4.3350
+Iter  500 | Train Loss: 2.2888
+Iter 1000 | Train Loss: 2.0538
+Iter 1500 | Train Loss: 1.8409
+Iter 2000 | Train Loss: 1.7221
+Iter 2500 | Train Loss: 1.6893
 
---- Generating Regular Expressions (MLP-Transformer) ---
-
-((([0-9]{3,3})([A-Za-z0-9]{3,})?([A-Z0-9]+.[0-9]+)$
-(^[A-Z]{1,15})
-((?: )*,([A-Z]){70,4}) (-)(\d{1,3})[\]]+(\)(.*)?=\.+)(?)(?:\d))((\d{2}\/\-|\d{3})?(\.)\{2}?:{0,3}\.{1,4}\"\s*?\s*\"(\s*?:".*?)
-\/?(?("|))"|,|(?=\s*\/.*?)(|$)\.(?(\.|$?)\d))
-(?=\d{6,}$
-```
-
-```text
---- Training Pure Connectionist Recurrent-MLP LM on Regular Expressions ---
-Iter    0 | Train Loss: 4.7438
-Iter  500 | Train Loss: 1.6162
-Iter 1000 | Train Loss: 1.4672
-Iter 1500 | Train Loss: 1.4257
-Iter 2000 | Train Loss: 1.3936
-Iter 2500 | Train Loss: 1.3442
-
---- Generating Regular Expressions (Recurrent-MLP) ---
-
-(?=^|\s+)(?:[^']+))?[\s\S\D+(\(\(\)\s*-,^()]|(<)\\|0)\d){4}$
-^[0-9]{2}\/[0-9]{1,3}\d{1,3}\d{14})
-\$([a-z]{11}|5[0-579]|[1-9]|5[0-9]\d|2[0-2])(?:[0-9]{1})$
-^([0-9]|[0-9]{2})|([1-9])0{2}([\w.-]?0[0-9]|[1-9])))
-([0]{4})
-(?=([0-9])+))$
-^(([a-zA-F0-3]|)(?
-```
-
-```text
---- Training Pure Connectionist Sparse Recurrent-MLP on Regular Expressions ---
-Iter    0 | Train Loss: 4.5184
-Iter  500 | Train Loss: 2.2155
-Iter 1000 | Train Loss: 2.0120
-Iter 1500 | Train Loss: 1.9489
-Iter 2000 | Train Loss: 1.8840
-Iter 2500 | Train Loss: 1.9473
-
---- Generating Regular Expressions (Sparse Recurrent-MLP) ---
-
-<=.+"\d]{2}
-(\[0-9]?)$
-([^]{1}$
-^([@:\sa-z]]([^.*\d]{0,2}(.{5}([^a-zA-Za-z70-9]{3})[a-z]{3})
-([a-f]{2})(?\.\d+?([^<-]{9}
-^"(\"(\(\d]*
-(^{4}),
-\).*(.+)(| {1,3}[0-9]+[0-9]
-[\w[a-z]+)(?:)?(\d -){1})[\w\w+)\d\d)|([\w)))?|)((\d+
-\.\d*? )+){1})
-([a-\]+[0-9
-```
-
-```text
---- Training Pure Connectionist Vanilla TDL on Regular Expressions ---
-Iter    0 | Train Loss: 4.5790
-Iter  500 | Train Loss: 1.5997
-Iter 1000 | Train Loss: 1.5099
-Iter 1500 | Train Loss: 1.4463
-Iter 2000 | Train Loss: 1.4180
-Iter 2500 | Train Loss: 1.3936
-
---- Generating Regular Expressions (Vanilla TDL) ---
-
-((?:-?(\.[0-9.-]+(?:\s+?)\)\)\-\(\s+
-(.*?\d*) ([\d]) ?
-\w*]+$
-^(?:[a-zA-Z]*\s*(?=.*[A-Z][a-f\d][0-9]*) ([a-zA-Z][0-9]{2,})\/(\d+
-\D{2,})
-^(?:\d+$|^\s]+)
-(1[0-9]{2,10}|\+|-|\*|\())+$
-^([a-z])[ \t]+
-([a-zA-Z0-9-]*)\)\d{2,6}(\.[0-9]+)+)*
-([\w-]+)\.(\d*
-```
-
-```text
---- Training Pure Connectionist Vanilla TDL (1990s SGD) on Regular Expressions ---
-Iter    0 | Train Loss: 4.5036
-Iter  500 | Train Loss: 1.8719
-Iter 1000 | Train Loss: 1.7610
-Iter 1500 | Train Loss: 1.7074
-Iter 2000 | Train Loss: 1.6890
-Iter 2500 | Train Loss: 1.6461
-
---- Generating Regular Expressions (Vanilla TDL - 1990s SGD) ---
-
-(0[53][0-9]\1\d)|(,[0}-\d\s\_]+)(\S*)\{\t\ \-)?(\t+)*|\]|\.\d*?>"(?:(?:[\d]{2}[\w]+\.\d{4})$
-^([1-9])*#([A-Z][0-9][a-z0-9]|1[0-1]*)\.([^\b)(?=[\u20,2}+\.?[a-z])(\d\*\.?[^\`)[-]\d\d)|([A-Z]{3,4})
-(\s))(?={1,4}$
-^([a-z])(?!\w\d]+)
-\[('=\w*-.]{3}) ?\d(|
-```
-
-```text
---- Testing Shannon's 1948 Markovian Text Generator ---
---- Training 5-Order Markov Model on 73249 characters ---
-Model built with 27457 unique states.
-
---- Generating Text (Claude Shannon's N-Gram Approximation) ---
-,?)
-([a-z] ?)*$
-^([0-9A-F]{8}[-]?([0-9]{3}$
-^\+\d{1,4})$
-^((?=.*[^\w\s]).{8,16}$
-^[a-zA-Z][A-Za-z\d]+)
-([0-9]{1,3}?-(\d{2} \d{2}
-\d{3,4})
-(^ *\S+ *$)|(^9(0{2}|([1-9][0-9]+
-^[A-Z0-9]+)*)(\.[a-z\.]{2,5})?(\.[a-zA-Z0-9_.+-]+)\/(\d{4}-\d{2})\s-\s\S+)\s+([\d,.].*)
-\/(\d+)\s*(.*?):
-[A-Z])(?=.+\..+).{0,255}(?:-|\s*)
-((?:(?:(\d{2,4}){1,3}(?:\..{2}))))$
-^(0[1-9]{1}[a-z])(?=.*(?=.{8,24}$
-^[1-9]|1[0-2]{1}\d\d)?(?:[\s].*)
-\(*\d\)\)
-\(([\d]+ +)|^(.*)(<|>)
-(\:(\w|\.|\,(?:\s*)?(\}?)(\/?)(\{?)([a-zA-Z0-9-]+\.[a
-Initializing Z3 SMT Solver for Boolean Superoptimization...
-Target Function (Raw PyTorch Logic):
-And(Or(And(C1_0, Q_0), And(Not(C1_0), Not(Q_0))),
-    And(Or(And(C1_1, Q_1), And(Not(C1_1), Not(Q_1))), E))
-
-Starting search for the absolute minimum gate-count circuit...
-Testing circuit size N = 1 gates...
-Testing circuit size N = 2 gates...
-Testing circuit size N = 3 gates...
-Testing circuit size N = 4 gates...
-
-SUCCESS! Found equivalent circuit with exactly 4 gates!
-gate_5 = XOR(Q_0, C1_0)
-gate_6 = XOR(C1_1, Q_1)
-gate_7 = NOT A AND B(E, gate_5)
-gate_8 = A AND NOT B(gate_6, gate_7)
-
-This mathematical proof confirms the absolute minimum hardware gate-count!
+--- Generating Regular Expressions ---
+like of in dear Mausice bourral:
+I if for, for my longlow then and are of wate
+Tham: what I'll now: yo but lijess
+And to wills. feir no be thou we to word!
+That that spate it thy neighting womont man,
+Look you sweears an hust pract not way, the
+mast in the noble of not of they seep of this,
+as percud our suse so not all parsht goods,
+Thy'funt one, so drame of agteachons,
+Her alovip me lang the gravants bany this the
+But this I vimilt, must I crered.
+My Greased vickive upp'dise at unto this, all
 ```
 <!-- REGEX LOGS END -->
 
@@ -911,230 +687,39 @@ If we feed the above combinational logic gates into an optimizing compiler (like
 
 The synthesizer collapses the redundant bit-sliced logic gates into hardware-native word-level integer math. It transpiles back into these ultra-dense lines of pure branchless code, representing the absolute mathematical floor required to solve the task:
 
-```mermaid
-graph TD
-    classDef token fill:#f9f9f9,stroke:#333,stroke-width:2px
-    classDef op fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
-    
-    Q["Query Token"]:::token
-    ACC["Bitwise OR Accumulator (y)"]:::op
-    C_0["Context Token (0)"]:::token
-    C_next_0["Context Token (1)"]:::token
-    XOR_0["XOR Gate (C_0 ^ Q)"]:::op
-    OR_0["OR Reduction"]:::op
-    INV_0["Invert & Expand Mask"]:::op
-    AND_0["Bitwise AND MUX"]:::op
-    C_1["Context Token (1)"]:::token
-    C_next_1["Context Token (2)"]:::token
-    XOR_1["XOR Gate (C_1 ^ Q)"]:::op
-    OR_1["OR Reduction"]:::op
-    INV_1["Invert & Expand Mask"]:::op
-    AND_1["Bitwise AND MUX"]:::op
-    C_2["Context Token (2)"]:::token
-    C_next_2["Context Token (3)"]:::token
-    XOR_2["XOR Gate (C_2 ^ Q)"]:::op
-    OR_2["OR Reduction"]:::op
-    INV_2["Invert & Expand Mask"]:::op
-    AND_2["Bitwise AND MUX"]:::op
-    C_3["Context Token (3)"]:::token
-    C_next_3["Context Token (4)"]:::token
-    XOR_3["XOR Gate (C_3 ^ Q)"]:::op
-    OR_3["OR Reduction"]:::op
-    INV_3["Invert & Expand Mask"]:::op
-    AND_3["Bitwise AND MUX"]:::op
-    C_4["Context Token (4)"]:::token
-    C_next_4["Context Token (5)"]:::token
-    XOR_4["XOR Gate (C_4 ^ Q)"]:::op
-    OR_4["OR Reduction"]:::op
-    INV_4["Invert & Expand Mask"]:::op
-    AND_4["Bitwise AND MUX"]:::op
-    
-    Q --> XOR_0
-    C_0 --> XOR_0
-    XOR_0 --> OR_0
-    OR_0 --> INV_0
-    INV_0 --> AND_0
-    C_next_0 --> AND_0
-    AND_0 --> ACC
-    Q --> XOR_1
-    C_1 --> XOR_1
-    XOR_1 --> OR_1
-    OR_1 --> INV_1
-    INV_1 --> AND_1
-    C_next_1 --> AND_1
-    AND_1 --> ACC
-    Q --> XOR_2
-    C_2 --> XOR_2
-    XOR_2 --> OR_2
-    OR_2 --> INV_2
-    INV_2 --> AND_2
-    C_next_2 --> AND_2
-    AND_2 --> ACC
-    Q --> XOR_3
-    C_3 --> XOR_3
-    XOR_3 --> OR_3
-    OR_3 --> INV_3
-    INV_3 --> AND_3
-    C_next_3 --> AND_3
-    AND_3 --> ACC
-    Q --> XOR_4
-    C_4 --> XOR_4
-    XOR_4 --> OR_4
-    OR_4 --> INV_4
-    INV_4 --> AND_4
-    C_next_4 --> AND_4
-    AND_4 --> ACC
-```
-
+{llvm_diagram}
 
 **Python Implementation:**
 ```python
 # Fully minimized synthesized Boolean hardware circuit
-def predict_next_token_optimized(context, query):
-    y = 0
-    for j in range(5):
-        # 1. Word-level Z3 AST logic
-        diff = ~(~(query ^ context[j])) # Invert since reduction needs 0 for match
-        # 2. Bitwise reduction across 4 bits
-        any_diff = ((diff >> 0) | (diff >> 1) | (diff >> 2) | (diff >> 3)) & 1
-        # 3. Two's complement mask expansion (0 -> all 1s, 1 -> all 0s)
-        mask = -(any_diff ^ 1)
-        # 4. Branchless hardware MUX
-        y |= mask & context[j+1]
-    return y
+{llvm_block}
 ```
 
 **Clojure Implementation (`optimized_true_gpt.clj`):**
 ```clojure
 ;; Elegant functional representation of the hardware logic
-(defn predict-next-token-optimized [context query]
-  (reduce bit-or 0
-    (map
-      (fn [j]
-        (let [diff (bit-not (bit-not (bit-xor query (nth context j))))
-              any-diff (bit-and
-                         (bit-or (bit-shift-right diff 0)
-                                 (bit-shift-right diff 1)
-                                 (bit-shift-right diff 2)
-                                 (bit-shift-right diff 3))
-                         1)
-              mask (- (bit-xor any-diff 1))]
-          (bit-and mask (nth context (inc j)))))
-      (range 5))))
+{clj_block}
 ```
 
 **Mathematica Implementation (`optimized_true_gpt.wls`):**
 ```mathematica
 (* Beautiful pattern-matching Wolfram Language evaluation *)
-PredictNextToken[context_, query_] := Total[ReplacePart[RotateRight[Boole[Map[BitNot[BitXor[#, query]] == -1 &, context]], 1], 1 -> 0] * context]
+{mma_code}
 ```
 
 **APL Implementation (`optimized_true_gpt.apl`):**
 ```apl
 ⍝ The absolute pinnacle of array-oriented notation
-predict_next_token ← { +/ (0 , -1 ↓ (⍺=⍵)) × ⍺ }
+{apl_code}
 ```
 
 **Verilog RTL Implementation (`optimized_true_gpt.v`):**
 ```verilog
 // Unrolled combinational logic module
-module predict_next_token_optimized #(
-    parameter NUM_BITS = 4
-)(
-    input wire [NUM_BITS-1:0] context_0,
-    input wire [NUM_BITS-1:0] context_1,
-    input wire [NUM_BITS-1:0] context_2,
-    input wire [NUM_BITS-1:0] context_3,
-    input wire [NUM_BITS-1:0] context_4,
-    input wire [NUM_BITS-1:0] context_5,
-    input wire [NUM_BITS-1:0] query,
-    output wire [NUM_BITS-1:0] y
-);
-    // Fully unrolled combinational data-path
-    assign y = ((context_0 == query) ? context_1 : {NUM_BITS{1'b0}}) | 
-               ((context_1 == query) ? context_2 : {NUM_BITS{1'b0}}) | 
-               ((context_2 == query) ? context_3 : {NUM_BITS{1'b0}}) | 
-               ((context_3 == query) ? context_4 : {NUM_BITS{1'b0}}) | 
-               ((context_4 == query) ? context_5 : {NUM_BITS{1'b0}});
-endmodule
+{v_block}
 ```
 
-### 💻 Raw Hardware Compilation (LLVM IR & x86 ASM)
-
-While the backend logic circuit executing our tests is compiled using extremely aggressive `-Ofast -march=native -mllvm -polly` flags with **Profile-Guided Optimization (PGO)**, the true beauty of this architecture is how minimal it is at its core. By instructing **Clang/LLVM** to aggressively optimize for size (`-Oz`), the entire Attention mechanism golfs down to a handful of raw instructions:
-
-**Extracted LLVM Intermediate Representation (IR):**
-```llvm
-define dso_local i64 @predict_next_token_optimized(ptr noundef readonly captures(none) %0, i64 noundef %1, i64 noundef %2) local_unnamed_addr #0 {
-  %4 = tail call i64 @llvm.smax.i64(i64 %1, i64 1)
-  %5 = add nsw i64 %4, -1
-  br label %6
-
-6:                                                ; preds = %11, %3
-  %7 = phi i64 [ 0, %3 ], [ %23, %11 ]
-  %8 = phi i64 [ 0, %3 ], [ %27, %11 ]
-  %9 = icmp eq i64 %7, %5
-  br i1 %9, label %10, label %11
-
-10:                                               ; preds = %6
-  ret i64 %8
-
-11:                                               ; preds = %6
-  %12 = getelementptr inbounds nuw i64, ptr %0, i64 %7
-  %13 = load i64, ptr %12, align 8, !tbaa !5
-  %14 = xor i64 %13, %2
-  %15 = lshr i64 %14, 1
-  %16 = lshr i64 %14, 2
-  %17 = lshr i64 %14, 3
-  %18 = or i64 %16, %15
-  %19 = or i64 %18, %17
-  %20 = or i64 %19, %14
-  %21 = or i64 %20, -2
-  %22 = add nsw i64 %21, 1
-  %23 = add nuw nsw i64 %7, 1
-  %24 = getelementptr inbounds nuw i64, ptr %0, i64 %23
-  %25 = load i64, ptr %24, align 8, !tbaa !5
-  %26 = and i64 %22, %25
-  %27 = or i64 %26, %8
-  br label %6, !llvm.loop !9
-}
-```
-
-**Extracted Native x86 Assembly:**
-```asm
-	.cfi_startproc
-# %bb.0:
-	cmpq	$2, %rsi
-	pushq	$1
-	.cfi_adjust_cfa_offset 8
-	popq	%rcx
-	.cfi_adjust_cfa_offset -8
-	cmovlq	%rcx, %rsi
-	xorl	%eax, %eax
-.LBB0_1:                                # =>This Inner Loop Header: Depth=1
-	cmpq	%rcx, %rsi
-	je	.LBB0_2
-# %bb.3:                                #   in Loop: Header=BB0_1 Depth=1
-	movl	-8(%rdi,%rcx,8), %r8d
-	xorl	%edx, %r8d
-	movl	%r8d, %r9d
-	movl	%r8d, %r10d
-	shrl	$3, %r10d
-	orl	%r8d, %r10d
-	shrl	%r8d
-	shrl	$2, %r9d
-	orl	%r8d, %r9d
-	orl	%r9d, %r10d
-	orq	$-2, %r10
-	incq	%r10
-	andq	(%rdi,%rcx,8), %r10
-	orq	%r10, %rax
-	incq	%rcx
-	jmp	.LBB0_1
-.LBB0_2:
-	retq
-```
-
+{raw_hardware_compilation}
 <!-- BOOLEAN LOGIC END -->
 
 ## 📚 Academic References

@@ -36,15 +36,21 @@ class InductionDataset(Dataset):
             return True
             
         for i in range(num_samples):
-            query = X[i, -1].item()
-            context = X[i, :-1].tolist()
-            
-            target = 0
-            for j in range(len(context) - offset):
-                if check_match(context[j], query):
-                    target = context[j+offset]
+            while True:
+                context = torch.rand(VOCAB_SIZE).argsort(dim=-1)[:SEQ_LEN - 1].tolist()
+                query = random.randint(0, VOCAB_SIZE - 1)
+                
+                target = None
+                for j in range(len(context) - offset):
+                    if check_match(context[j], query):
+                        target = context[j+offset]
+                        break
+                
+                if target is not None:
+                    X[i, :-1] = torch.tensor(context)
+                    X[i, -1] = query
+                    Y[i] = target
                     break
-            Y[i] = target
             
         self.seqs = X
         self.targets = Y
