@@ -18,8 +18,8 @@ graph TD
     F[4-State DFA Specification] --> G[DFA Sequence Generator]
     G --> H[Recurrent SSM Training]
     H --> I[L0 Sparsity Pruning]
-    I --> J[Pruned SSM (20% Sparsity)]
-    J --> K[Baseline Evaluation & Statistical T-Tests]
+    I --> J["Pruned SSM (20% Sparsity)"]
+    J --> K["Baseline Evaluation & Statistical T-Tests"]
 ```
 
 ## 2. Mathematical Formulations & Code Examples
