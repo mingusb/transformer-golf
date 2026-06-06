@@ -60,15 +60,23 @@ print(output) # Yields continuous relaxation of the circuit outputs
 
 The Recurrent SSM models temporal sequence updates by discretizing a continuous-time state-space system. The transitions are initialized using a HiPPO (High-order Polynomial Projection Operators) matrix to represent long-range historical memory.
 
-$$\dot{x}(t) = A x(t) + B u(t)$$
-$$y(t) = C x(t)$$
-
+```math
+\dot{x}(t) = A x(t) + B u(t)
+```
+```math
+y(t) = C x(t)
+```
 The state transitions are gated dynamically using a data-dependent input gate $g_t \in (0, 1)$:
 
-$$g_t = \sigma(W_g x_t + b_g)$$
-$$\tilde{h}_t = \tanh(h_{t-1} A^T + x_t B^T)$$
-$$h_t = (1 - g_t) \odot h_{t-1} + g_t \odot \tilde{h}_t$$
-
+```math
+g_t = \sigma(W_g x_t + b_g)
+```
+```math
+\tilde{h}_t = \tanh(h_{t-1} A^T + x_t B^T)
+```
+```math
+h_t = (1 - g_t) \odot h_{t-1} + g_t \odot \tilde{h}_t
+```
 #### Initialization Example
 
 ```python
@@ -148,21 +156,24 @@ For $N_{\text{types}} = 1$ (the Dyck-1 language), the alphabet is $\{0, 1\}$, wh
 To generate structurally valid, balanced nested sequences of length $L$ and maximum depth $D$, a stochastic generator tracks the current stack size $C_t$ and the remaining tokens to generate $R_t = L - t$ at each step $t$. The transition options (open vs. close) are constrained as follows:
 - **`must_open`**: The generator must produce an open bracket if:
   
-  $$ C_t = 0 \quad \text{or} \quad \left(d_{\text{max}} < D \ \land \ C_t + R_t \le 2D\right) $$
-  
+  ```math
+  C_t = 0 \quad \text{or} \quad \left(d_{\text{max}} < D \ \land \ C_t + R_t \le 2D\right)
+  ```
   where $d_{\text{max}}$ is the maximum depth reached in the sequence.
 - **`must_close`**: The generator must produce a close bracket if:
   
-  $$ C_t = R_t \quad \text{or} \quad C_t = D $$
-  
+  ```math
+  C_t = R_t \quad \text{or} \quad C_t = D
+  ```
 - If neither condition is met, the generator selects between opening and closing with equal probability ($0.5$).
 For $N_{\text{types}} > 1$, when an open action is selected, a type $k$ is sampled uniformly. When a close action is selected, the LIFO constraint is enforced by outputting the matching bracket $2k+1$ for the most recent open bracket $2k$.
 
 #### 4.1.3. Target Format
 The sequence modeling task is formulated as next-token prediction. The target sequence $Y$ is the input sequence $X$ shifted left by one step, with a terminal token $0$:
 
-$$ Y_t = X_{t+1} \quad \text{for} \quad t \in \{0, \dots, L-2\}, \quad Y_{L-1} = 0 $$
-
+```math
+Y_t = X_{t+1} \quad \text{for} \quad t \in \{0, \dots, L-2\}, \quad Y_{L-1} = 0
+```
 ---
 
 ### 4.2. Model Architectures & Mathematical Formulations
@@ -189,56 +200,66 @@ Let the soft stack at step $t$ be represented by a matrix $S_t \in \mathbb{R}^{D
 1. **Controller Recurrence**:
    The controller hidden state $h_t$ is updated using the concatenation of the current input token embedding $e_t \in \mathbb{R}^{H}$ and the current top of the stack $S_{t-1, 0} \in \mathbb{R}^{W_{\text{stack}}}$:
    
-   $$ h_t = \text{GRUCell}\left([e_t; S_{t-1, 0}], h_{t-1}\right) $$
-
+   ```math
+   h_t = \text{GRUCell}\left([e_t; S_{t-1, 0}], h_{t-1}\right)
+   ```
 2. **Differentiable Stack Updates**:
    The hidden state $h_t$ is projected to obtain a push vector $v_t \in \mathbb{R}^{W_{\text{stack}}}$ and operational logits $g_t \in \mathbb{R}^3$:
    
-   $$ [g_t; v_t] = W_{\text{stack-proj}} h_t + b_{\text{stack-proj}} $$
-   
+   ```math
+   [g_t; v_t] = W_{\text{stack-proj}} h_t + b_{\text{stack-proj}}
+   ```
    Soft stack operations (push, pop, no-op) are computed via a softmax activation over $g_t$:
    
-   $$ [p_t, o_t, n_t] = \text{softmax}(g_t) $$
-   
+   ```math
+   [p_t, o_t, n_t] = \text{softmax}(g_t)
+   ```
    where $p_t$ is the push probability, $o_t$ is the pop probability, and $n_t$ is the no-op probability.
 
    The shifted stack configurations for push and pop operations are defined as:
    
-   $$ S_{\text{push}, t} = \begin{bmatrix} v_t^T \\\\ S_{t-1, 0:D_{\text{stack}}-2} \end{bmatrix} $$
-   
-   $$ S_{\text{pop}, t} = \begin{bmatrix} S_{t-1, 1:D_{\text{stack}}-1} \\\\ \mathbf{0}^T \end{bmatrix} $$
-   
+   ```math
+   S_{\text{push}, t} = \begin{bmatrix} v_t^T \\\\ S_{t-1, 0:D_{\text{stack}}-2} \end{bmatrix}
+   ```
+   ```math
+   S_{\text{pop}, t} = \begin{bmatrix} S_{t-1, 1:D_{\text{stack}}-1} \\\\ \mathbf{0}^T \end{bmatrix}
+   ```
    The soft stack state is updated as a convex combination of these operations:
    
-   $$ S_t = p_t S_{\text{push}, t} + o_t S_{\text{pop}, t} + (1 - p_t - o_t) S_{t-1} $$
-
+   ```math
+   S_t = p_t S_{\text{push}, t} + o_t S_{\text{pop}, t} + (1 - p_t - o_t) S_{t-1}
+   ```
 3. **Readout**:
    The output logits are projected directly from the controller hidden state:
    
-   $$ y_t = W_{\text{fc}} h_t + b_{\text{fc}} $$
-
+   ```math
+   y_t = W_{\text{fc}} h_t + b_{\text{fc}}
+   ```
 #### 4.2.2. Liquid State Machine (LSM)
 The Liquid State Machine (Stage 12) is a reservoir computing architecture featuring a large, fixed recurrent reservoir pool with sparse connections, where only the linear readout layer is trained.
 
 1. **Edge-of-Chaos Reservoir Connection**:
    The recurrent reservoir weight matrix $W_{\text{res}} \in \mathbb{R}^{N_{\text{res}} \times N_{\text{res}}}$ is initialized sparsely with density parameter $1 - s$ (where $s$ is the sparsity fraction). To maximize the high-dimensional fading memory capacity without entering chaotic divergence, the spectral radius of $W_{\text{res}}$ is strictly scaled:
    
-   $$ W_{\text{res}} \leftarrow W_{\text{res}} \times \frac{\rho_{\text{target}}}{\lambda_{\text{max}}} $$
-   
+   ```math
+   W_{\text{res}} \leftarrow W_{\text{res}} \times \frac{\rho_{\text{target}}}{\lambda_{\text{max}}}
+   ```
    where $\lambda_{\text{max}} = \max_i |\lambda_i(W_{\text{res}})|$ is the maximum absolute eigenvalue of the initial matrix, and $\rho_{\text{target}}$ is the target spectral radius (typically $\approx 0.95 - 0.99$).
 
 2. **Reservoir Dynamics**:
    The input token index is mapped to a one-hot representation $x_t \in \{0, 1\}^{N_{\text{vocab}}}$. The state update equations for the reservoir state $h_t \in \mathbb{R}^{N_{\text{res}}}$ are:
    
-   $$ h_t = \tanh\left(x_t W_{\text{in}} + h_{t-1} W_{\text{res}} + b\right) $$
-   
+   ```math
+   h_t = \tanh\left(x_t W_{\text{in}} + h_{t-1} W_{\text{res}} + b\right)
+   ```
    where the input projection matrix $W_{\text{in}}$ and the bias vector $b$ are randomly initialized and frozen.
 
 3. **Linear Readout**:
    The output logits are computed via a trainable linear layer:
    
-   $$ y_t = h_t W_{\text{out}} + b_{\text{out}} $$
-
+   ```math
+   y_t = h_t W_{\text{out}} + b_{\text{out}}
+   ```
 #### 4.2.3. Model Initialization Example
 
 ```python
