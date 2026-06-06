@@ -1,2 +1,2 @@
 model,accuracy,token_accuracy,sequence_accuracy,sparsity
-DualStackRNN,0.7586,0.7586,0.0000,0.0000
+UniversalLSM,0.3448,0.3448,0.0000,0.0000
