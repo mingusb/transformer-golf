@@ -1,2 +1,2 @@
 model,accuracy,token_accuracy,sequence_accuracy,sparsity
-LSM,0.4850,0.4850,0.0000,0.0000
+LSM,0.5600,0.5600,0.0000,0.0000
