@@ -197,8 +197,8 @@ Let the soft stack at step $t$ be represented by a matrix $S_t \in \mathbb{R}^{D
 
    The shifted stack configurations for push and pop operations are defined as:
    
-   $S_{\text{push}, t} = \begin{bmatrix} v_t^T \\\\ S_{t-1, 0:D_{\text{stack}}-2} \end{bmatrix}$
-   $S_{\text{pop}, t} = \begin{bmatrix} S_{t-1, 1:D_{\text{stack}}-1} \\\\ \mathbf{0}^T \end{bmatrix}$
+   $S_{\text{push}, t} = \begin{bmatrix} v_t^T \\ S_{t-1, 0:D_{\text{stack}}-2} \end{bmatrix}$
+   $S_{\text{pop}, t} = \begin{bmatrix} S_{t-1, 1:D_{\text{stack}}-1} \\ \mathbf{0}^T \end{bmatrix}$
 
    The soft stack state is updated as a convex combination of these operations:
    
