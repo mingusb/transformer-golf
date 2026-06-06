@@ -23,3 +23,13 @@ Following the successful completion of the 8-stage pipeline for spatial and temp
 - Implement a `StackRNN` in `src/models/stack_rnn.py`.
 - This model will be augmented with a differentiable Pushdown Stack (a memory tape that can push and pop discrete states).
 - Train the `StackRNN` and prove that it achieves 100% accuracy across all nesting depths (infinite depth capacity), successfully "golfing" the architecture to match the formal language complexity of the task.
+
+### Stage 12: Liquid State Machine at the Edge of Chaos
+**Objective**: Evaluate a non-trainable, randomly connected recurrent reservoir initialized precisely on the "Edge of Chaos" (where Lyapunov exponent $\lambda \approx 0$) across all three experimental sequence tasks.
+**Implementation Details**:
+- Implement a `LiquidStateMachine` in `src/models/lsm.py` using a sparse, recurrently connected pool of spiking/continuous neurons. Only the linear readout weights are trained.
+- Initialize the reservoir's spectral radius to strictly maintain the edge of chaos, maximizing temporal memory capacity without exponential divergence.
+- Benchmark the LSM against all three tasks:
+  1. **Spatial Baseline (Induction Head)**: Can chaotic reservoirs reliably perform long-range associative recall?
+  2. **Temporal DFA Tracking**: How does the LSM compare to the perfectly pruned $\mathcal{O}(1)$ Recurrent SSM at tracking state parity?
+  3. **Hierarchical Nesting (Dyck-n)**: Does the chaotic reverberation inherently simulate a pushdown stack up to a certain depth threshold better than a standard RNN?
