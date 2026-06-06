@@ -1,3 +1,0 @@
-model,accuracy,token_accuracy,sequence_accuracy,sparsity
-StackRNN,0.9310,0.9310,0.0000,0.0000
-DualStackRNN,0.9310,0.9310,0.0000,0.0000
