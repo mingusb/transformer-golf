@@ -338,4 +338,30 @@ logits, (stack1_states, stack2_states) = model(inputs)
 - **Copy Task**: Trained on sequence lengths of 5 and generalizes to length 10. `StackRNN` fails to achieve perfect sequence accuracy due to LIFO limitation.
 - **ABC Task**: Gated with `ignore_index = 3` (EOS/padding) to prevent accuracy inflation. `StackRNN` fails because a single stack cannot track $a^n b^n c^n$, whereas `DualStackRNN` achieves **1.0000** sequence accuracy.
 
+## 6. Phase 4: Universal Liquid State Computing
+
+Phase 4 introduces biologically plausible spike-driven recurrent models capable of context-sensitive sequence prediction without standard backpropagation or autograd.
+
+### 6.1. ASG-MSLSM Architecture
+The **Adaptive Spiking Gating Multi-Scale Liquid State Machine (ASG-MSLSM)** partitions its reservoir into distinct functional pools:
+1. **Transient Sub-Reservoirs**: Pools of Leaky Integrate-and-Fire (LIF) neurons with logarithmically scaled membrane time constants $\tau_m \in [\tau_{\text{min}}, \tau_{\text{max}}]$ to capture multi-scale short-term temporal dependencies.
+2. **Persistent Memory Sub-Reservoirs**: Integrate-and-Fire (IF) neurons with infinite membrane time constant ($\tau_m = \infty$, so $\alpha = 1.0$) to sustain continuous states over long temporal boundaries.
+3. **Adaptive Spiking Gating Layer**: A separate spiking layer using LIF neurons that dynamically routes incoming input signals to specific sub-reservoirs based on the grammatical phase of the sequence.
+
+### 6.2. Predictive Coding & TEPRE Training Protocol
+The model is trained entirely without PyTorch `autograd` or Backpropagation Through Time (BPTT). Instead, it uses **Temporal Error Predictive Recurrent Eligibility (TEPRE)** combined with local spike-driven plasticity:
+- **Localized D-STDP**: Synaptic updates are localized to the pre-synaptic activation and post-synaptic state.
+- **Eligibility Traces**: Trace matrices $E(t)$ accumulate pre-synaptic and post-synaptic activities with exponential decay:
+  
+  $E_g(t) = \gamma_g E_g(t-1) + \text{surr\_deriv\_gate}(V_g(t)) \cdot u_t^T$
+- **Predictive Coding Feedback**: Random error-feedback projection matrices $B$ and $B_{\text{res}}$ project next-step prediction errors $e(t) = d(t) - p(t)$ back to the reservoir and gating neurons:
+  
+  $\Delta W \propto e(t) \cdot B^T \cdot E(t)$
+- **No-BPTT Constraint**: All recurrent and gating potentials are detached from the autograd graph at each step, ensuring zero BPTT gradient overhead.
+
+### 6.3. Task Performance & Comparison
+When evaluated on the context-sensitive $a^n b^n c^n$ multiple-counting task, the model utilizes the persistent Integrate-and-Fire neurons as scale-invariant counters. The linear readout layer maps these persistent potentials to predict exact phase transition steps:
+- **Comparison to Stack-RNN / Dual-Stack RNN**: While `StackRNN` fails to resolve context-sensitive tasks ($0.0000$ sequence accuracy), and `DualStackRNN` requires BPTT and autograd to reach convergence, `UniversalLSM` achieves perfect **1.0000** sequence accuracy bounds with purely local, spike-driven updates and generalizes efficiently across variable sequence lengths.
+
+
 

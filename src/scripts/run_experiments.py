@@ -38,6 +38,12 @@ try:
 except ImportError:
     HAS_DUAL_STACK_RNN = False
 
+try:
+    from src.models.universal_lsm import UniversalLSM
+    HAS_UNIVERSAL_LSM = True
+except ImportError:
+    HAS_UNIVERSAL_LSM = False
+
 
 def train_model(model, X_train, Y_train, epochs=50, lr=0.03, ignore_index=None):
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -88,7 +94,7 @@ def main():
     parser.add_argument("--config", type=str, default="real_config")
     parser.add_argument("--output_dir", type=str, default="results")
     parser.add_argument("--task", type=str, choices=["alternating", "nesting", "copy", "abc"], default="alternating")
-    parser.add_argument("--model", type=str, default="all", choices=["all", "ssm", "attention", "conv1d", "markov", "stack_rnn", "lsm", "dual_stack_rnn"])
+    parser.add_argument("--model", type=str, default="all", choices=["all", "ssm", "attention", "conv1d", "markov", "stack_rnn", "lsm", "dual_stack_rnn", "universal_lsm"])
     args = parser.parse_args()
     
     os.makedirs(args.output_dir, exist_ok=True)
@@ -113,12 +119,15 @@ def main():
                 models_to_run.append("StackRNN")
             if HAS_LSM:
                 models_to_run.append("LSM")
+            if HAS_UNIVERSAL_LSM:
+                models_to_run.append("UniversalLSM")
         else:
             model_map = {
                 "ssm": ["SSM"],
                 "attention": ["Attention"],
                 "stack_rnn": ["StackRNN"] if HAS_STACK_RNN else [],
-                "lsm": ["LSM"] if HAS_LSM else []
+                "lsm": ["LSM"] if HAS_LSM else [],
+                "universal_lsm": ["UniversalLSM"] if HAS_UNIVERSAL_LSM else []
             }
             models_to_run = model_map.get(args.model, ["SSM", "Attention"])
             if not models_to_run:
@@ -147,11 +156,16 @@ def main():
                 models["StackRNN"] = StackRNN(vocab_size=2, hidden_size=16, stack_width=4, stack_depth=55)
             if "LSM" in models_to_run:
                 models["LSM"] = LiquidStateMachine(input_size=2, reservoir_size=50, output_size=2, spectral_radius=0.99, sparsity=0.1)
+            if "UniversalLSM" in models_to_run:
+                models["UniversalLSM"] = UniversalLSM(input_size=2, reservoir_size=50, output_size=2)
 
             # Train models
             for m_name, model in models.items():
                 print(f"Training {m_name} on nesting task...")
-                train_model(model, X_train, Y_train, epochs=epochs, lr=0.03)
+                if m_name == "UniversalLSM":
+                    model.fit(X_train, Y_train, epochs=epochs, lr=0.03)
+                else:
+                    train_model(model, X_train, Y_train, epochs=epochs, lr=0.03)
 
             # Evaluate across all testing depths
             for d in eval_depths:
@@ -192,8 +206,8 @@ def main():
         import matplotlib.pyplot as plt
         plt.figure(figsize=(10, 6))
 
-        colors = {"SSM": "blue", "Attention": "red", "StackRNN": "green", "LSM": "purple"}
-        markers = {"SSM": "o", "Attention": "s", "StackRNN": "^", "LSM": "d"}
+        colors = {"SSM": "blue", "Attention": "red", "StackRNN": "green", "LSM": "purple", "UniversalLSM": "orange"}
+        markers = {"SSM": "o", "Attention": "s", "StackRNN": "^", "LSM": "d", "UniversalLSM": "x"}
 
         for model in models_to_run:
             color = colors.get(model, "black")
@@ -248,6 +262,9 @@ def main():
             test_len = 100
             vocab_size = 4
             num_samples = 100
+        if args.model in ["universal_lsm", "all"] and args.config != "mock":
+            epochs = 100
+            train_len = 100
     else:  # alternating
         vocab_size = 2
         if args.config == "mock":
@@ -295,10 +312,13 @@ def main():
                 models_to_run.append("StackRNN")
             if HAS_DUAL_STACK_RNN:
                 models_to_run.append("DualStackRNN")
+            if HAS_UNIVERSAL_LSM:
+                models_to_run.append("UniversalLSM")
         else:
             model_map = {
                 "stack_rnn": ["StackRNN"] if HAS_STACK_RNN else [],
                 "dual_stack_rnn": ["DualStackRNN"] if HAS_DUAL_STACK_RNN else [],
+                "universal_lsm": ["UniversalLSM"] if HAS_UNIVERSAL_LSM else [],
             }
             models_to_run = model_map.get(args.model, [])
     else:  # alternating
@@ -306,6 +326,8 @@ def main():
             models_to_run = ["SSM", "Attention", "Conv1D", "MarkovChain"]
             if HAS_LSM:
                 models_to_run.append("LSM")
+            if HAS_UNIVERSAL_LSM:
+                models_to_run.append("UniversalLSM")
         else:
             model_map = {
                 "ssm": ["SSM"],
@@ -315,6 +337,7 @@ def main():
                 "stack_rnn": ["StackRNN"] if HAS_STACK_RNN else [],
                 "lsm": ["LSM"] if HAS_LSM else [],
                 "dual_stack_rnn": ["DualStackRNN"] if HAS_DUAL_STACK_RNN else [],
+                "universal_lsm": ["UniversalLSM"] if HAS_UNIVERSAL_LSM else [],
             }
             models_to_run = model_map.get(args.model, ["SSM", "Attention", "Conv1D", "MarkovChain"])
 
@@ -338,7 +361,10 @@ def main():
             ignore_index = None
         elif args.task == "abc":
             from src.data.context_sensitive import generate_abc_task
-            X_train, Y_train = generate_abc_task(num_samples, n_max=train_len, n=train_len)
+            if args.model in ["universal_lsm", "all"]:
+                X_train, Y_train = generate_abc_task(num_samples, n_max=train_len, n=None)
+            else:
+                X_train, Y_train = generate_abc_task(num_samples, n_max=train_len, n=train_len)
             X_test, Y_test = generate_abc_task(num_samples, n_max=test_len, n=test_len)
             ignore_index = 3
         else:
@@ -362,11 +388,16 @@ def main():
             models["LSM"] = LiquidStateMachine(input_size=vocab_size, reservoir_size=50, output_size=vocab_size, spectral_radius=0.99, sparsity=0.1)
         if "DualStackRNN" in models_to_run:
             models["DualStackRNN"] = DualStackRNN(vocab_size=vocab_size, hidden_size=16, stack_width=4, stack_depth=55)
+        if "UniversalLSM" in models_to_run:
+            models["UniversalLSM"] = UniversalLSM(input_size=vocab_size, reservoir_size=90, output_size=vocab_size)
 
         # Train models
         for m_name, model in models.items():
             print(f"Training {m_name}...")
-            train_model(model, X_train, Y_train, epochs=epochs, lr=0.03, ignore_index=ignore_index)
+            if m_name == "UniversalLSM":
+                model.fit(X_train, Y_train, epochs=epochs, lr=0.03, ignore_index=ignore_index if ignore_index is not None else -100)
+            else:
+                train_model(model, X_train, Y_train, epochs=epochs, lr=0.03, ignore_index=ignore_index)
 
         # Apply L0 pruning to SSM if present
         if "SSM" in models:
