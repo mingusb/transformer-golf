@@ -32,10 +32,19 @@ try:
 except ImportError:
     HAS_LSM = False
 
+try:
+    from src.models.universal_rnn import DualStackRNN
+    HAS_DUAL_STACK_RNN = True
+except ImportError:
+    HAS_DUAL_STACK_RNN = False
 
-def train_model(model, X_train, Y_train, epochs=50, lr=0.03):
+
+def train_model(model, X_train, Y_train, epochs=50, lr=0.03, ignore_index=None):
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    loss_fn = nn.CrossEntropyLoss()
+    if ignore_index is not None:
+        loss_fn = nn.CrossEntropyLoss(ignore_index=ignore_index)
+    else:
+        loss_fn = nn.CrossEntropyLoss()
     for epoch in range(epochs):
         optimizer.zero_grad()
         logits, _ = model(X_train)
@@ -43,12 +52,18 @@ def train_model(model, X_train, Y_train, epochs=50, lr=0.03):
         loss.backward()
         optimizer.step()
 
-def evaluate_model_accs(model, X, Y):
+def evaluate_model_accs(model, X, Y, ignore_index=None):
     with torch.no_grad():
         logits, _ = model(X)
         preds = logits.argmax(dim=-1)
-        token_acc = (preds == Y).float().mean().item()
-        seq_acc = (preds == Y).all(dim=-1).float().mean().item()
+        if ignore_index is not None:
+            mask = (Y != ignore_index)
+            correct_tokens = (preds == Y) & mask
+            token_acc = correct_tokens.sum().float().item() / max(mask.sum().float().item(), 1.0)
+            seq_acc = ((preds == Y) | ~mask).all(dim=-1).float().mean().item()
+        else:
+            token_acc = (preds == Y).float().mean().item()
+            seq_acc = (preds == Y).all(dim=-1).float().mean().item()
     return token_acc, seq_acc
 
 def generate_alternating(length, count):
@@ -72,8 +87,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="real_config")
     parser.add_argument("--output_dir", type=str, default="results")
-    parser.add_argument("--task", type=str, choices=["alternating", "nesting"], default="alternating")
-    parser.add_argument("--model", type=str, default="all", choices=["all", "ssm", "attention", "conv1d", "markov", "stack_rnn", "lsm"])
+    parser.add_argument("--task", type=str, choices=["alternating", "nesting", "copy", "abc"], default="alternating")
+    parser.add_argument("--model", type=str, default="all", choices=["all", "ssm", "attention", "conv1d", "markov", "stack_rnn", "lsm", "dual_stack_rnn"])
     args = parser.parse_args()
     
     os.makedirs(args.output_dir, exist_ok=True)
@@ -203,18 +218,50 @@ def main():
         return 0
     
     # 1. Determine configuration hyperparameters
-    if args.config == "mock":
-        seeds = [1]
-        epochs = 2
-        train_len = 5
-        test_len = 10
-        num_samples = 5
-    else:
-        seeds = list(range(1, 11))
-        epochs = 80
-        train_len = 20
-        test_len = 100
-        num_samples = 100
+    if args.task == "copy":
+        if args.config == "mock":
+            seeds = [1]
+            epochs = 2
+            train_len = 5
+            test_len = 10
+            vocab_size = 4
+            num_samples = 5
+        else:
+            seeds = list(range(1, 11))
+            epochs = 80
+            train_len = 20
+            test_len = 100
+            vocab_size = 10
+            num_samples = 100
+    elif args.task == "abc":
+        if args.config == "mock":
+            seeds = [1]
+            epochs = 2
+            train_len = 5
+            test_len = 10
+            vocab_size = 4
+            num_samples = 5
+        else:
+            seeds = list(range(1, 11))
+            epochs = 80
+            train_len = 20
+            test_len = 100
+            vocab_size = 4
+            num_samples = 100
+    else:  # alternating
+        vocab_size = 2
+        if args.config == "mock":
+            seeds = [1]
+            epochs = 2
+            train_len = 5
+            test_len = 10
+            num_samples = 5
+        else:
+            seeds = list(range(1, 11))
+            epochs = 80
+            train_len = 20
+            test_len = 100
+            num_samples = 100
 
     # Verification: Check if gradients flow back to log_alpha gate parameters
     print("Verifying gradient flow back to log_alpha gate parameters...")
@@ -241,20 +288,39 @@ def main():
     print("Gradient flow verified successfully.")
 
     # 2. Setup results container
-    if args.model == "all":
-        models_to_run = ["SSM", "Attention", "Conv1D", "MarkovChain"]
-        if HAS_LSM:
-            models_to_run.append("LSM")
-    else:
-        model_map = {
-            "ssm": ["SSM"],
-            "attention": ["Attention"],
-            "conv1d": ["Conv1D"],
-            "markov": ["MarkovChain"],
-            "stack_rnn": ["StackRNN"] if HAS_STACK_RNN else [],
-            "lsm": ["LSM"] if HAS_LSM else []
-        }
-        models_to_run = model_map.get(args.model, ["SSM", "Attention", "Conv1D", "MarkovChain"])
+    if args.task in ["copy", "abc"]:
+        if args.model == "all":
+            models_to_run = []
+            if HAS_STACK_RNN:
+                models_to_run.append("StackRNN")
+            if HAS_DUAL_STACK_RNN:
+                models_to_run.append("DualStackRNN")
+        else:
+            model_map = {
+                "stack_rnn": ["StackRNN"] if HAS_STACK_RNN else [],
+                "dual_stack_rnn": ["DualStackRNN"] if HAS_DUAL_STACK_RNN else [],
+            }
+            models_to_run = model_map.get(args.model, [])
+    else:  # alternating
+        if args.model == "all":
+            models_to_run = ["SSM", "Attention", "Conv1D", "MarkovChain"]
+            if HAS_LSM:
+                models_to_run.append("LSM")
+        else:
+            model_map = {
+                "ssm": ["SSM"],
+                "attention": ["Attention"],
+                "conv1d": ["Conv1D"],
+                "markov": ["MarkovChain"],
+                "stack_rnn": ["StackRNN"] if HAS_STACK_RNN else [],
+                "lsm": ["LSM"] if HAS_LSM else [],
+                "dual_stack_rnn": ["DualStackRNN"] if HAS_DUAL_STACK_RNN else [],
+            }
+            models_to_run = model_map.get(args.model, ["SSM", "Attention", "Conv1D", "MarkovChain"])
+
+    if not models_to_run:
+        print(f"Requested model {args.model} is not available/implemented.")
+        return 1
 
     results = {m: {"token_accs": [], "seq_accs": [], "sparsities": []} for m in models_to_run}
 
@@ -265,28 +331,42 @@ def main():
         random.seed(seed)
 
         # Generate train/val datasets
-        X_train, Y_train = generate_alternating(train_len, num_samples)
-        X_test, Y_test = generate_alternating(test_len, num_samples)
+        if args.task == "copy":
+            from src.data.context_sensitive import generate_copy_task
+            X_train, Y_train = generate_copy_task(num_samples, train_len, vocab_size)
+            X_test, Y_test = generate_copy_task(num_samples, test_len, vocab_size)
+            ignore_index = None
+        elif args.task == "abc":
+            from src.data.context_sensitive import generate_abc_task
+            X_train, Y_train = generate_abc_task(num_samples, n_max=train_len, n=train_len)
+            X_test, Y_test = generate_abc_task(num_samples, n_max=test_len, n=test_len)
+            ignore_index = 3
+        else:
+            X_train, Y_train = generate_alternating(train_len, num_samples)
+            X_test, Y_test = generate_alternating(test_len, num_samples)
+            ignore_index = None
 
         # Instantiate models
         models = {}
         if "SSM" in models_to_run:
-            models["SSM"] = RecurrentSSM(vocab_size=2, d_model=8, state_dim=16)
+            models["SSM"] = RecurrentSSM(vocab_size=vocab_size, d_model=8, state_dim=16)
         if "Attention" in models_to_run:
-            models["Attention"] = CausalAttentionModel(vocab_size=2, d_model=8, state_dim=16)
+            models["Attention"] = CausalAttentionModel(vocab_size=vocab_size, d_model=8, state_dim=16)
         if "Conv1D" in models_to_run:
-            models["Conv1D"] = Conv1DModel(vocab_size=2, d_model=8, state_dim=16)
+            models["Conv1D"] = Conv1DModel(vocab_size=vocab_size, d_model=8, state_dim=16)
         if "MarkovChain" in models_to_run:
-            models["MarkovChain"] = MarkovChainModel(vocab_size=2, d_model=8, state_dim=16)
+            models["MarkovChain"] = MarkovChainModel(vocab_size=vocab_size, d_model=8, state_dim=16)
         if "StackRNN" in models_to_run:
-            models["StackRNN"] = StackRNN(vocab_size=2, hidden_size=16, stack_width=4, stack_depth=55)
+            models["StackRNN"] = StackRNN(vocab_size=vocab_size, hidden_size=16, stack_width=4, stack_depth=55)
         if "LSM" in models_to_run:
-            models["LSM"] = LiquidStateMachine(input_size=2, reservoir_size=50, output_size=2, spectral_radius=0.99, sparsity=0.1)
+            models["LSM"] = LiquidStateMachine(input_size=vocab_size, reservoir_size=50, output_size=vocab_size, spectral_radius=0.99, sparsity=0.1)
+        if "DualStackRNN" in models_to_run:
+            models["DualStackRNN"] = DualStackRNN(vocab_size=vocab_size, hidden_size=16, stack_width=4, stack_depth=55)
 
         # Train models
         for m_name, model in models.items():
             print(f"Training {m_name}...")
-            train_model(model, X_train, Y_train, epochs=epochs, lr=0.03)
+            train_model(model, X_train, Y_train, epochs=epochs, lr=0.03, ignore_index=ignore_index)
 
         # Apply L0 pruning to SSM if present
         if "SSM" in models:
@@ -301,12 +381,12 @@ def main():
         # Evaluate models on test length (length generalization)
         for m_name, model in models.items():
             if m_name == "SSM":
-                token_acc, seq_acc = evaluate_model_accs(eval_ssm, X_test, Y_test)
+                token_acc, seq_acc = evaluate_model_accs(eval_ssm, X_test, Y_test, ignore_index=ignore_index)
                 results["SSM"]["token_accs"].append(token_acc)
                 results["SSM"]["seq_accs"].append(seq_acc)
                 results["SSM"]["sparsities"].append(ssm_sparsity)
             else:
-                token_acc, seq_acc = evaluate_model_accs(model, X_test, Y_test)
+                token_acc, seq_acc = evaluate_model_accs(model, X_test, Y_test, ignore_index=ignore_index)
                 results[m_name]["token_accs"].append(token_acc)
                 results[m_name]["seq_accs"].append(seq_acc)
                 results[m_name]["sparsities"].append(0.0)

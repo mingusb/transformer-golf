@@ -298,3 +298,44 @@ The tables below compare the token-level and sequence-level accuracy of the mode
 | **StackRNN** | 0.4567 | 0.2000 |
 | **LSM** | **0.6633** | **0.2000** |
 
+
+## 5. Phase 3: Context-Sensitive Routing & Universal Computation
+
+Phase 3 evaluates sequence routing mechanisms for tasks that require **Universal Computation (Turing Completeness)**. These tasks exceed the complexity bounds of a standard context-free Pushdown Automaton (PDA).
+
+### 5.1. Context-Sensitive Sequence Generation (Stage 13)
+We define two context-sensitive sequence routing tasks:
+1. **The Copy Task ($ww$)**: The network receives a sequence of random tokens followed by a delimiter, and must output the exact same sequence in the exact same order (First-In, First-Out (FIFO) logic).
+2. **Multiple Counting ($a^n b^n c^n$)**: The network must track a count $n$, output $n$ `a`s, then $n$ `b`s, and then $n$ `c`s. A standard LIFO stack is emptied after matching the `b`s and cannot match the `c`s.
+
+Both generators are implemented in `src/data/context_sensitive.py` and formulated as next-token prediction paths.
+
+### 5.2. Universal Memory Architecture (Stage 14)
+To process context-sensitive languages, we implement `DualStackRNN` in `src/models/universal_rnn.py`. A Pushdown Automaton equipped with two independent stacks is equivalent to a Turing machine (Turing-complete).
+- **Architecture**: It contains a controller RNN (e.g. GRU) that receives the input token embedding along with the top elements of **both** stacks.
+- **Stack Updates**: The controller projects two separate sets of soft gating operations (push, pop, no-op) and push values, updating the two differentiable continuous stacks independently.
+- **Differentiability**: Gating operations are continuous and differentiable, allowing end-to-end backpropagation.
+
+```python
+import torch
+from src.models.universal_rnn import DualStackRNN
+
+# Initialize a Dual-Stack RNN
+vocab_size = 4
+hidden_size = 16
+stack_width = 4
+stack_depth = 8
+
+model = DualStackRNN(vocab_size, hidden_size, stack_width, stack_depth)
+inputs = torch.randint(0, vocab_size, (2, 5)) # Shape: (batch, seq_len)
+logits, (stack1_states, stack2_states) = model(inputs)
+# logits shape: (batch_size, seq_len, vocab_size)
+# each stack state tensor has shape: (batch_size, seq_len, stack_depth, stack_width)
+```
+
+### 5.3. Evaluation & Integration (Stage 15)
+`src/scripts/run_experiments.py` has been updated to support `--task copy` and `--task abc` tasks.
+- **Copy Task**: Trained on sequence lengths of 5 and generalizes to length 10. `StackRNN` fails to achieve perfect sequence accuracy due to LIFO limitation.
+- **ABC Task**: Gated with `ignore_index = 3` (EOS/padding) to prevent accuracy inflation. `StackRNN` fails because a single stack cannot track $a^n b^n c^n$, whereas `DualStackRNN` achieves **1.0000** sequence accuracy.
+
+
