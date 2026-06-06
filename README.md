@@ -217,7 +217,7 @@ The Liquid State Machine (Stage 12) is a reservoir computing architecture featur
 
 3. **Linear Readout**:
    The output logits are computed via a trainable linear layer:
-   $$\text{logits}_t = W_{\text{out}} h_t + b_{\text{out}}$$
+   $$\text{logits}_t = h_t W_{\text{out}} + b_{\text{out}}$$
 
 #### 4.2.3. Model Initialization Example
 
