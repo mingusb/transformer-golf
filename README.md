@@ -106,6 +106,15 @@ stateDiagram-v2
     1 --> 1 : 'b'
 ```
 
+#### Example DFA Sequence Generation
+To effectively route sequences, the model must learn to implicitly track the hidden Markov state over time. Below is an example of the exact autoregressive training data the models are evaluated on:
+
+```text
+Input Sequence:  ['a', 'b', 'b', 'a', 'a']
+Target Output:   ['b', 'b', 'a', 'a', 'b']  # (Next-token prediction)
+Hidden States:   [ 0,   1,   1,   1,   0,   1 ]
+```
+
 ### 3.1. Performance Comparison
 
 Following training and structural pruning optimization, the models achieved the following accuracy and parameter sparsity profiles:
