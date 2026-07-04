@@ -1,0 +1,6 @@
+depth,model,token_accuracy,sequence_accuracy
+1,StackRNN,1.0000,1.0000
+2,StackRNN,0.7500,0.0000
+3,StackRNN,0.5000,0.0000
+4,StackRNN,0.5000,0.0000
+5,StackRNN,0.4000,0.0000
